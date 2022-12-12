@@ -1,45 +1,15 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
+from .settings import settings
+import hashlib
+from . import github
+from .types import Version, VersionFile, Channel, Index
 import json
+import re
+import os
 
-
-class VersionFile:
-    def __init__(self, url, target, file_type, sha256):
-        self.url = url
-        self.target = target
-        self.file_type = file_type
-        self.sha256 = sha256
-
-
-class Version:
-    def __init__(self, version, changelog, timestamp):
-        self.version = version
-        self.changelog = changelog
-        self.timestamp = timestamp
-        self.files = []
-
-    def add_file(self, file: VersionFile):
-        self.files.append(file.__dict__)
-
-
-class Channel:
-    def __init__(self, channel_id, title, description):
-        self.id = channel_id
-        self.title = title
-        self.description = description
-        self.versions = []
-
-    def add_version(self, version: Version):
-        self.versions.append(version.__dict__)
-
-
-class Index:
-    def __init__(self):
-        self.channels = []
-
-    def add_channel(self, channel: Channel):
-        self.channels.append(channel.__dict__)
-
+router = APIRouter()
+directory_json = Index()
 
 development_channel = Channel(
     "development",
@@ -55,27 +25,71 @@ release_channel = Channel(
     "release", "Stable Release Channel", "Stable releases, tested by Flipper QA"
 )
 
-router = APIRouter()
-directory_json = Index()
-channels = [development_channel, release_candidate_channel, release_channel]
+
+def getSHA256(filepath: str) -> str:
+    with open(filepath, "rb") as file:
+        file_bytes = file.read()
+        sha256 = hashlib.sha256(file_bytes).hexdigest()
+    return sha256
 
 
-def generate_index():
-    global directory_json
-    directory_json = Index()
-    for cur in channels:
-        version = Version("0.73.1-rc", "Nothing", 123124123412)
-        version.add_file(
-            VersionFile(
-                "ya.ru",
-                "any",
-                "core2_firmware_tgz",
-                "3c51876f3304885e20fe364a434d222f117fc30bbf4feeaf56ca0a4ba160d60b",
+def addFilesToVersion(version: Version, directory: str) -> Version:
+    directory_path = os.path.join(settings.files_dir, directory)
+    regex = re.compile(r"^flipper-z-(f7|any)-(\w+)-([a-zA-Z0-9-_.]+)\.(\w+)$")
+    if not os.path.isdir(directory_path):
+        print(f"Directory {directory} not found!")
+        return
+    for cur in sorted(os.listdir(directory_path)):
+        match = regex.match(cur)
+        if match:
+            version.add_file(
+                VersionFile(
+                    os.path.join(settings.base_url, directory, cur),
+                    match.group(1),
+                    match.group(2) + "_" + match.group(4),
+                    getSHA256(os.path.join(directory_path, cur)),
+                )
             )
-        )
-        cur.add_version(version)
-        directory_json.add_channel(cur)
-    print("Reindex completed")
+    return version
+
+
+def parseDevChannel(channel: Channel) -> Version:
+    details = github.getDevDetails()
+    version = Version(details["version"], details["changelog"], details["timestamp"])
+    version = addFilesToVersion(version, "dev")
+    channel.add_version(version)
+    return channel
+
+
+def parseRelease(channel: Channel, isRC: bool) -> Version:
+    details = github.getReleaseDetails(isRC)
+    version = Version(details["version"], details["changelog"], details["timestamp"])
+    version = addFilesToVersion(version, details["version"])
+    channel.add_version(version)
+    return channel
+
+
+def parseChannel(channel: Channel) -> Channel:
+    if channel == development_channel:
+        channel = parseDevChannel(channel)
+    elif channel == release_candidate_channel:
+        channel = parseRelease(channel, True)
+    elif channel == release_channel:
+        channel = parseRelease(channel, False)
+    return channel
+
+
+def generate_index() -> None:
+    global directory_json
+    new_json = Index()
+    try:
+        directory_json.add_channel(parseChannel(development_channel))
+        directory_json.add_channel(parseChannel(release_candidate_channel))
+        directory_json.add_channel(parseChannel(release_channel))
+        directory_json = new_json
+        print("Reindex completed")
+    except:
+        print("Reindex failed")
 
 
 @router.get("/directory.json")

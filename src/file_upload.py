@@ -1,8 +1,6 @@
 import os
 import shutil
-from fastapi import APIRouter
-from fastapi import Form
-from fastapi import UploadFile
+from fastapi import APIRouter, Form, UploadFile
 from fastapi.responses import JSONResponse
 from .settings import settings
 from .directory_json import generate_index
@@ -11,13 +9,13 @@ from .directory_json import generate_index
 router = APIRouter()
 
 
-def cleanupCleateDir(path):
+def cleanupCleateDir(path: str) -> None:
     if os.path.isdir(path):
         shutil.rmtree(path)
     os.makedirs(path, exist_ok=True)
 
 
-def saveFiles(path, files):
+def saveFiles(path: str, files: list) -> None:
     for file in files:
         with open(os.path.join(path, file.filename), "wb") as out_file:
             out_file.write(file.file.read())
