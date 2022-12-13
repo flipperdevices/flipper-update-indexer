@@ -1,7 +1,7 @@
 from github import Github
 from datetime import datetime, timedelta
 from .settings import settings
-from .types import Version
+from .indextypes import Version
 
 git = Github(settings.github_token)
 org = git.get_organization(settings.github_org)

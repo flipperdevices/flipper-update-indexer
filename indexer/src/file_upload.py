@@ -21,7 +21,7 @@ def saveFiles(path: str, files: list) -> None:
             out_file.write(file.file.read())
 
 
-@router.post("/uploadfiles/")
+@router.post("/uploadfiles")
 async def create_upload_files(files: list[UploadFile], branch: str = Form()):
     path = os.path.join(settings.files_dir, branch)
     cleanupCleateDir(path)

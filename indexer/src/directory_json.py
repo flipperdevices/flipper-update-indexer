@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from .settings import settings
 import hashlib
 from . import github
-from .types import Version, VersionFile, Channel, Index
+from .indextypes import Version, VersionFile, Channel, Index
 import json
 import re
 import os
