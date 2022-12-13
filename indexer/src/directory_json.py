@@ -37,8 +37,7 @@ def addFilesToVersion(version: Version, directory: str) -> Version:
     directory_path = os.path.join(settings.files_dir, directory)
     regex = re.compile(r"^flipper-z-(f7|any)-(\w+)-([a-zA-Z0-9-_.]+)\.(\w+)$")
     if not os.path.isdir(directory_path):
-        print(f"Directory {directory} not found!")
-        return
+        raise Exception(f"Directory {directory} not found!")
     for cur in sorted(os.listdir(directory_path)):
         match = regex.match(cur)
         if match:
@@ -86,8 +85,9 @@ def generate_index() -> None:
         new_json.add_channel(parseChannel(release_channel))
         directory_json = new_json
         print("Reindex completed")
-    except:
+    except Exception as e:
         print("Reindex failed")
+        print(e)
 
 
 @router.get("/directory.json")
