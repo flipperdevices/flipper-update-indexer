@@ -1,7 +1,7 @@
 FROM python:3.11-alpine3.17
 
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
-COPY nginx/nginx-theme /etc/nginx/nginx-theme
+COPY nginx/nginx-theme /var/lib/nginx/html/nginx-theme
 ADD indexer /app
 COPY startup.sh /app/
 WORKDIR /app
