@@ -4,6 +4,7 @@ from fastapi import APIRouter, Form, UploadFile
 from fastapi.responses import JSONResponse
 from .settings import settings
 from .directory_json import generate_index
+import logging
 
 
 router = APIRouter()
@@ -26,6 +27,6 @@ async def create_upload_files(files: list[UploadFile], branch: str = Form()):
     path = os.path.join(settings.files_dir, branch)
     cleanupCleateDir(path)
     saveFiles(path, files)
-    print(f"Uploaded {len(files)} files")
+    logging.info(f"Uploaded {len(files)} files")
     generate_index()
     return JSONResponse("ok")

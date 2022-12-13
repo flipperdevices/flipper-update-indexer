@@ -2,8 +2,10 @@
 
 import uvicorn
 from fastapi import FastAPI, Request, Response
-from src import directory_json, file_upload, security, init
+from src import directory_json, file_upload, security, indexer_init
 from src.settings import settings
+import sys
+import logging
 
 app = FastAPI()
 
@@ -20,7 +22,8 @@ app.include_router(directory_json.router)
 
 
 def main():
-    init.init()
+    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+    indexer_init.init()
     uvicorn.run(
         "main:app", host="0.0.0.0", port=settings.port, workers=settings.workers
     )

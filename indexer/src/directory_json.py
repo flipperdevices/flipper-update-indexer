@@ -1,8 +1,9 @@
 from fastapi import APIRouter
+import logging
 from fastapi.responses import JSONResponse
 from .settings import settings
 import hashlib
-from . import github
+from . import indexer_github
 from .indextypes import Version, VersionFile, Channel, Index
 import json
 import re
@@ -53,14 +54,14 @@ def addFilesToVersion(version: Version, directory: str) -> Version:
 
 
 def parseDevChannel(channel: Channel) -> Version:
-    version = github.getDevDetails()
+    version = indexer_github.getDevDetails()
     version = addFilesToVersion(version, "dev")
     channel.add_version(version)
     return channel
 
 
 def parseRelease(channel: Channel, isRC: bool) -> Version:
-    version = github.getReleaseDetails(isRC)
+    version = indexer_github.getReleaseDetails(isRC)
     version = addFilesToVersion(version, version.version)
     channel.add_version(version)
     return channel
@@ -84,10 +85,10 @@ def generate_index() -> None:
         new_json.add_channel(parseChannel(release_candidate_channel))
         new_json.add_channel(parseChannel(release_channel))
         directory_json = new_json
-        print("Reindex completed")
+        logging.info("Reindex completed")
     except Exception as e:
-        print("Reindex failed")
-        print(e)
+        logging.error("Reindex failed")
+        logging.exception(e)
 
 
 @router.get("/directory.json")
@@ -97,5 +98,8 @@ async def directory():
 
 @router.get("/reindex")
 async def reindex():
-    generate_index()
-    return JSONResponse("ok")
+    try:
+        generate_index()
+        return JSONResponse("ok")
+    except Exception as e:
+        return JSONResponse("fail")
