@@ -54,17 +54,15 @@ def addFilesToVersion(version: Version, directory: str) -> Version:
 
 
 def parseDevChannel(channel: Channel) -> Version:
-    details = github.getDevDetails()
-    version = Version(details["version"], details["changelog"], details["timestamp"])
+    version = github.getDevDetails()
     version = addFilesToVersion(version, "dev")
     channel.add_version(version)
     return channel
 
 
 def parseRelease(channel: Channel, isRC: bool) -> Version:
-    details = github.getReleaseDetails(isRC)
-    version = Version(details["version"], details["changelog"], details["timestamp"])
-    version = addFilesToVersion(version, details["version"])
+    version = github.getReleaseDetails(isRC)
+    version = addFilesToVersion(version, version.version)
     channel.add_version(version)
     return channel
 
@@ -83,9 +81,9 @@ def generate_index() -> None:
     global directory_json
     new_json = Index()
     try:
-        directory_json.add_channel(parseChannel(development_channel))
-        directory_json.add_channel(parseChannel(release_candidate_channel))
-        directory_json.add_channel(parseChannel(release_channel))
+        new_json.add_channel(parseChannel(development_channel))
+        new_json.add_channel(parseChannel(release_candidate_channel))
+        new_json.add_channel(parseChannel(release_channel))
         directory_json = new_json
         print("Reindex completed")
     except:
