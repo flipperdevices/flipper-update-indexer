@@ -2,8 +2,6 @@ name: 'Deploy'
 
 on:
   push:
-    branches:
-      - dev
     tags:
       - '*'
 
@@ -23,12 +21,9 @@ jobs:
       - name: 'Set image tag'
         id: tag
         run: |
-          IMAGE_TAG=0.0.0
-          if [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
-            REF=${{ github.ref }};
-            TAG_FULL=${REF#refs/*/};
-            IMAGE_TAG=${TAG_FULL//\//_};
-          fi
+          REF=${{ github.ref }};
+          TAG_FULL=${REF#refs/*/};
+          IMAGE_TAG=${TAG_FULL//\//_};
           echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
           echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
 
