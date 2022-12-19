@@ -1,5 +1,6 @@
 import logging
 import re
+import asyncio
 from fastapi import APIRouter
 from .dirparser import parseDirectory
 from .indextypes import *
@@ -56,6 +57,7 @@ class DirectoryIndex:
 
 
 router = APIRouter()
+lock = asyncio.Lock()
 
 
 class qFlipperFileParser(FileParser):
@@ -110,16 +112,11 @@ indexes = {
 
 
 @router.get("/{directory}/directory.json")
-def directory_request(directory):
-    try:
-        return indexes.get(directory).index_json
-    except Exception as e:
-        raise e
+async def directory_request(directory):
+    return indexes.get(directory).index_json
 
 
 @router.get("/{directory}/reindex")
-def reindex_request(directory):
-    try:
+async def reindex_request(directory):
+    async with lock:
         return indexes.get(directory).reindexRequest()
-    except Exception as e:
-        raise e
