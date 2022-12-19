@@ -4,7 +4,7 @@ from fastapi import APIRouter, Form, UploadFile
 from fastapi.responses import JSONResponse
 from .settings import settings
 import logging
-from .directories import firmware_index, qFlipper_index
+from .directories import indexes
 
 
 router = APIRouter()
@@ -31,7 +31,7 @@ def saveFiles(path: str, files: list[UploadFile]) -> None:
 
 
 @router.post("/{directory}/uploadfiles")
-async def create_upload_files(files: list[UploadFile], branch: str = Form()):
+def create_upload_files(files: list[UploadFile], branch: str = Form()):
     path = os.path.join(settings.files_dir, branch)
     try:
         checkIfPathInsideAllowedPath(path)
@@ -41,22 +41,10 @@ async def create_upload_files(files: list[UploadFile], branch: str = Form()):
     except Exception as e:
         logging.exception(e)
         return JSONResponse("upload fail", status_code=500)
-    if directory == "firmware":
-        try:
-            firmware_index()
-            return JSONResponse("ok")
-        except Exception:
-            return JSONResponse(
-                "upload passed, but firmware reindex fail", status_code=500
-            )
-    elif directory == "qFlipper":
-        try:
-            qFlipper_index()
-            return JSONResponse("ok")
-        except Exception:
-            return JSONResponse(
-                "upload passed, but qFlipper reindex fail", status_code=500
-            )
-    else:
-        return JSONResponse("Wrong directory", status_code=404)
-    return JSONResponse("ok")
+    try:
+        indexes.get(directory).reindex
+        return JSONResponse("ok")
+    except Exception:
+        return JSONResponse(
+            f"upload passed, but {directory} reindex fail", status_code=500
+        )

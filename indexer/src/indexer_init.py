@@ -1,7 +1,7 @@
 import os
 import logging
 from .settings import settings
-from .directories import firmware_index, qFlipper_index
+from .directories import indexes
 
 
 def createAppDir(app_dir: str) -> None:
@@ -11,12 +11,5 @@ def createAppDir(app_dir: str) -> None:
 
 def init() -> None:
     createAppDir(settings.files_dir)
-    try:
-        firmware_index()
-    except Exception:
-        logging.error("firmware reindex failed!")
-
-    try:
-        qFlipper_index()
-    except Exception:
-        logging.error("qFlipper reindex failed!")
+    for index in indexes:
+        indexes[index].reindex()

@@ -1,4 +1,6 @@
 from pydantic import BaseModel
+import re
+import hashlib
 
 
 class VersionFile(BaseModel):
@@ -33,6 +35,25 @@ class Index(BaseModel):
 
     def add_channel(self, channel: Channel) -> None:
         self.channels.append(channel)
+
+
+class FileParser:
+    target: str
+    type: str
+
+    def getSHA256(self, filepath: str) -> str:
+        with open(filepath, "rb") as file:
+            file_bytes = file.read()
+            sha256 = hashlib.sha256(file_bytes).hexdigest()
+        return sha256
+
+    def parse(self, filename: str) -> None:
+        regex = re.compile(r"^flipper-z-(\w+)-(\w+)-([a-zA-Z0-9-_.]+)\.(\w+)$")
+        match = regex.match(filename)
+        if not match:
+            raise Exception(f"Unknown file {filename}")
+        self.target = match.group(1)
+        self.type = match.group(2) + "_" + match.group(4)
 
 
 development_channel = Channel(
