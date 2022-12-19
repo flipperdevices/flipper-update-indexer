@@ -15,7 +15,6 @@ async def checkToken(request: Request, call_next):
     if security.checkToken(request):
         return await call_next(request)
     return Response(status_code=401)
-    return await call_next(request)
 
 
 app.include_router(file_upload.router)
