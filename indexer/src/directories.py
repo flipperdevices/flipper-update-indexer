@@ -79,10 +79,16 @@ indexes = {
 
 @router.get("/{directory}/directory.json")
 async def directory_request(directory):
-    return indexes.get(directory).index_json
+    index = indexes.get(directory)
+    if index:
+        return indexes.get(directory).index_json
+    return JSONResponse("Not found", status_code=404)
 
 
 @router.get("/{directory}/reindex")
 async def reindex_request(directory):
-    async with lock:
-        return indexes.get(directory).reindexRequest()
+    index = indexes.get(directory)
+    if index:
+        async with lock:
+            return indexes.get(directory).reindexRequest()
+    return JSONResponse("Not found", status_code=404)

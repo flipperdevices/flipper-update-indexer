@@ -59,9 +59,10 @@ async def create_upload_files(
         except Exception as e:
             logging.exception(e)
             return JSONResponse("upload fail", status_code=500)
-        if directory in indexes.keys():
+        reindex_dir = indexes.get(directory)
+        if reindex_dir:
             try:
-                indexes.get(directory).reindex
+                reindex_dir.reindex()
                 return JSONResponse("ok")
             except Exception:
                 return JSONResponse(
