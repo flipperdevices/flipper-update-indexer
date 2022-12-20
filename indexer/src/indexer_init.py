@@ -12,4 +12,7 @@ def createAppDir(app_dir: str) -> None:
 def init() -> None:
     createAppDir(settings.files_dir)
     for index in indexes:
-        indexes[index].reindex()
+        try:
+            indexes[index].reindex()
+        except Exception:
+            logging.exception(f"Init {index} reindex failed")
