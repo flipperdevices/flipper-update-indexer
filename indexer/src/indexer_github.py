@@ -23,7 +23,7 @@ def getDevDetails(connect: Repository.Repository, isRC: bool) -> Version:
     return Version(
         version=last_commit.sha[:8],
         changelog="Last commit: " + last_commit.commit.message,
-        timestamp=int(last_commit.commit.author.date.strftime("%s")),
+        timestamp=int(last_commit.commit.author.date.timestamp()),
     )
 
 
@@ -39,5 +39,5 @@ def getReleaseDetails(
     return Version(
         version=last_release.title,
         changelog=last_release.body,
-        timestamp=int(last_release.created_at.strftime("%s")),
+        timestamp=int(last_release.created_at.timestamp()),
     )

@@ -37,9 +37,9 @@ class Index(BaseModel):
         self.channels.append(channel)
 
 
-class FileParser:
-    target: str
-    type: str
+class FileParser(BaseModel):
+    target: str = ""
+    type: str = ""
 
     def getSHA256(self, filepath: str) -> str:
         with open(filepath, "rb") as file:
