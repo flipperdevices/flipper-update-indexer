@@ -19,7 +19,10 @@ def addFilesToVersion(
     checkDirectoryExist(directory_path)
     for cur in sorted(os.listdir(directory_path)):
         parsed_file = file_parser()
-        parsed_file.parse(cur)
+        try:
+            parsed_file.parse(cur)
+        except Exception as e:
+            logging.exception(e)
         version.add_file(
             VersionFile(
                 url=os.path.join(settings.base_url, main_dir, sub_dir, cur),

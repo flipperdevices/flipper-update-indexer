@@ -48,12 +48,14 @@ class FileParser(BaseModel):
         return sha256
 
     def parse(self, filename: str) -> None:
-        regex = re.compile(r"^flipper-z-(\w+)-(\w+)-([a-zA-Z0-9-_.]+)\.(\w+)$")
+        regex = re.compile(
+            r"^flipper-z-(\w+)-(\w+)-([0-9.]+(-rc)?|(dev-\w+-\w+))\.(\w+)$"
+        )
         match = regex.match(filename)
         if not match:
             raise Exception(f"Unknown file {filename}")
         self.target = match.group(1)
-        self.type = match.group(2) + "_" + match.group(4)
+        self.type = match.group(2) + "_" + match.group(6)
 
 
 development_channel = Channel(
