@@ -23,6 +23,7 @@ def addFilesToVersion(
             parsed_file.parse(cur)
         except Exception as e:
             logging.exception(e)
+            continue
         version.add_file(
             VersionFile(
                 url=os.path.join(settings.base_url, main_dir, sub_dir, cur),
