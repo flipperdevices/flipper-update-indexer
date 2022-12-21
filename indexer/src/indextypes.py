@@ -21,7 +21,7 @@ class Version(BaseModel):
 
 
 class Channel(BaseModel):
-    channel_id: str
+    id: str
     title: str
     description: str
     versions: list[Version] = []
@@ -57,17 +57,17 @@ class FileParser(BaseModel):
 
 
 development_channel = Channel(
-    channel_id="development",
+    id="development",
     title="Development Channel",
     description="Latest builds, not yet tested by Flipper QA, be careful",
 )
 release_candidate_channel = Channel(
-    channel_id="release-candidate",
+    id="release-candidate",
     title="Release Candidate Channel",
     description="This is going to be released soon, undergoing QA tests now",
 )
 release_channel = Channel(
-    channel_id="release",
+    id="release",
     title="Stable Release Channel",
     description="Stable releases, tested by Flipper QA",
 )
