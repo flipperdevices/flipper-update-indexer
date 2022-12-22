@@ -8,7 +8,7 @@ Get index
 
 Trigger reindex
 ```bash
-    curl -H "Token: YOUR_TOKEN" 127.0.0.1:8000/reindex
+    curl -H "Token: YOUR_TOKEN" 127.0.0.1:8000/firmware/reindex
 ```
 
 Upload files
