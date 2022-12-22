@@ -3,7 +3,7 @@
 ## Requests example
 Get index
 ```bash
-    curl 127.0.0.1:8000/directory.json
+    curl 127.0.0.1:8000/firmware/directory.json
 ```
 
 Trigger reindex
@@ -17,5 +17,5 @@ Upload files
         -F "branch=drunkbatya/test-spimemmanager" \
         -F "files=@flipper-z-any-core2_firmware-0.73.1.tgz" \
         -F "files=@flipper-z-f7-full-0.73.1.json" \
-        127.0.0.1:8000/uploadfiles
+        127.0.0.1:8000/firmware/uploadfiles
 ```
