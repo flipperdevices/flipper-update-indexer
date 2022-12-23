@@ -1,4 +1,4 @@
-from github import Github, Repository
+from github import Github, Repository, GithubException
 from datetime import datetime, timedelta
 from .settings import settings
 from .indextypes import Version
@@ -14,6 +14,30 @@ def indexerGithubConnect(token: str, org_name: str, repo_name: str):
     except Exception as e:
         logging.exception(e)
         raise e
+
+
+def isBranchExist(connect: Repository.Repository, branch: str) -> bool:
+    try:
+        connect.get_branch(branch)
+        return True
+    except GithubException as e:
+        error_code = str(e).split(" ")[0]
+        if error_code == "404":
+            return False
+        else:
+            raise e
+
+
+def isReleaseExist(connect: Repository.Repository, release: str) -> bool:
+    try:
+        connect.get_release(release)
+        return True
+    except GithubException as e:
+        error_code = str(e).split(" ")[0]
+        if error_code == "404":
+            return False
+        else:
+            raise e
 
 
 def getDevDetails(connect: Repository.Repository, isRC: bool) -> Version:

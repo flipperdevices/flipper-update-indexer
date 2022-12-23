@@ -1,3 +1,5 @@
+import os
+import shutil
 import logging
 import asyncio
 from fastapi import APIRouter
@@ -6,7 +8,7 @@ from github import Repository
 from .dirparser import parseDirectory
 from .indextypes import *
 from .settings import settings
-from .indexer_github import indexerGithubConnect
+from .indexer_github import indexerGithubConnect, isBranchExist, isReleaseExist
 from .extrafileparsers import qFlipperFileParser
 
 
@@ -33,6 +35,26 @@ class DirectoryIndex:
         self.github_org = github_org
         self.file_parser = file_parser
 
+    def deleteEmptyDirectories(self):
+        main_dir = os.path.join(settings.files_dir, self.directory)
+        for cur in os.listdir(main_dir):
+            cur_dir = os.path.join(main_dir, cur)
+            dir_content = os.listdir(cur_dir)
+            if not len(dir_content):
+                shutil.rmtree(cur_dir)
+                logging.info(f"Deleting {cur_dir}")
+
+    def deleteUnlinkedDirectories(self, github_connect: Repository.Repository):
+        main_dir = os.path.join(settings.files_dir, self.directory)
+        for root, dirs, files in os.walk(main_dir):
+            if not len(files):
+                continue
+            cur_dir = root.split(main_dir + "/")[1]
+            if not isBranchExist(github_connect, cur_dir):
+                if not isReleaseExist(github_connect, cur_dir):
+                    shutil.rmtree(os.path.join(main_dir, cur_dir))
+                    logging.info(f"Deleting {cur_dir}")
+
     def reindex(self):
         try:
             github_connect = indexerGithubConnect(
@@ -42,6 +64,8 @@ class DirectoryIndex:
                 self.directory, self.file_parser, github_connect
             )
             logging.info(f"{self.directory} reindex complited")
+            self.deleteUnlinkedDirectories(github_connect)
+            self.deleteEmptyDirectories()
         except Exception as e:
             logging.error(f"{self.directory} reindex faied")
             logging.exception(e)
