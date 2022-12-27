@@ -1,5 +1,4 @@
 from github import Github, Repository, GithubException
-from datetime import datetime, timedelta
 from .settings import settings
 from .indextypes import Version
 import logging
@@ -41,8 +40,9 @@ def isReleaseExist(connect: Repository.Repository, release: str) -> bool:
 
 
 def getDevDetails(connect: Repository.Repository, isRC: bool) -> Version:
-    since = datetime.now() - timedelta(days=10)
-    commits = connect.get_commits(since=since)
+    commits = connect.get_commits()
+    if not commits.totalCount:
+        raise Exception(f"Failed to get commits")
     last_commit = commits[0]
     return Version(
         version=last_commit.sha[:8],
@@ -55,6 +55,8 @@ def getReleaseDetails(
     connect: Repository.Repository, directory: str, isRC: bool
 ) -> Version:
     releases = connect.get_releases()
+    if not releases.totalCount:
+        raise Exception(f"Failed to get commits")
     last_release = next(filter(lambda c: c.prerelease == isRC, connect.get_releases()))
     for cur in releases:
         if cur.prerelease == isRC:
