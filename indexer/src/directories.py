@@ -3,7 +3,7 @@ import shutil
 import logging
 import asyncio
 from fastapi import APIRouter
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from github import Repository
 from .dirparser import parseDirectory
 from .indextypes import *
@@ -79,6 +79,23 @@ class DirectoryIndex:
             logging.exception(e)
             return JSONResponse("fail", status_code=500)
 
+    def getLatestVersion(self: str, channel: str, target: str, type: str) -> str:
+        target = target.replace("-", "/")
+        try:
+            channels = self.index_json["channels"]
+            current_channel = next(filter(lambda c: c.get("id") == channel, channels))
+            latest_version = current_channel.get("versions")[0]
+            latest_version_file = next(
+                filter(
+                    lambda c: c.get("target") == target and c.get("type") == type,
+                    latest_version.get("files"),
+                )
+            )
+            return latest_version_file.get("url")
+        except Exception as e:
+            logging.exception(e)
+            return JSONResponse("Not found", status_code=404)
+
 
 router = APIRouter()
 lock = asyncio.Lock()
@@ -106,6 +123,19 @@ async def directory_request(directory):
     index = indexes.get(directory)
     if index:
         return indexes.get(directory).index_json
+    return JSONResponse("Not found", status_code=404)
+
+
+@router.get(
+    "/{directory}/{channel}/{target}/{type}",
+    response_class=RedirectResponse,
+    status_code=302,
+)
+async def latest_request(directory, channel, target, type):
+    index = indexes.get(directory)
+    if index:
+        if len(index.index_json["channels"]) > 1:
+            return index.getLatestVersion(channel, target, type)
     return JSONResponse("Not found", status_code=404)
 
 

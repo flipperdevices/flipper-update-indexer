@@ -6,6 +6,14 @@ Get index
     curl 127.0.0.1:8000/firmware/directory.json
 ```
 
+Get latest release
+```bash
+    # format: 127.0.0.1:8000/{directory}/{channel}/{target}/{type}
+    # if target contains '/' (slash) replace it by '-' dash symbol
+    curl 127.0.0.1:8000/firmware/release/f7/updater_json
+    curl 127.0.0.1:8000/qFlipper/release/windows-amd64/installer
+```
+
 Trigger reindex
 ```bash
     curl -H "Token: YOUR_TOKEN" 127.0.0.1:8000/firmware/reindex

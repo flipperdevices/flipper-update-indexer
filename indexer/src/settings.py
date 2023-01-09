@@ -14,7 +14,7 @@ class Settings(BaseModel):
     firmware_github_repo: str
     qFlipper_github_token: str
     qFlipper_github_repo: str
-    public_paths: list[str]
+    private_paths: list[str]
 
     @validator("*", each_item=True)
     def emptyString(cls, elem):
@@ -36,5 +36,5 @@ settings = Settings(
     firmware_github_repo=os.getenv("INDEXER_FIRMWARE_GITHUB_REPO"),
     qFlipper_github_token=os.getenv("INDEXER_QFLIPPER_GITHUB_TOKEN"),
     qFlipper_github_repo=os.getenv("INDEXER_QFLIPPER_GITHUB_REPO"),
-    public_paths=["/firmware/directory.json", "/qFlipper/directory.json"],
+    private_paths=["reindex", "uploadfiles"],
 )
