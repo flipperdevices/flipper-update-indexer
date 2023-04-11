@@ -64,10 +64,10 @@ class DirectoryIndex:
                 self.directory, self.file_parser, repository
             )
             logging.info(f"{self.directory} reindex complited")
-            self.delete_unlinked_directories(repository)
-            self.delete_empty_directories()
+            # self.delete_unlinked_directories(repository)
+            # self.delete_empty_directories()
         except Exception as e:
-            logging.error(f"{self.directory} reindex faied")
+            logging.error(f"{self.directory} reindex failed")
             logging.exception(e)
             raise e
 
