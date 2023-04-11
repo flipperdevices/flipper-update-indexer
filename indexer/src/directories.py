@@ -112,10 +112,9 @@ indexes = {
 
 @router.get("/{directory}/directory.json")
 async def directory_request(directory):
-    index = indexes.get(directory)
-    if index:
-        return indexes.get(directory).index
-    return JSONResponse("Not found", status_code=404)
+    if directory not in indexes:
+        return JSONResponse(f"{directory} not found!", status_code=404)
+    return indexes.get(directory).index
 
 
 @router.get(
@@ -124,25 +123,25 @@ async def directory_request(directory):
     status_code=302,
 )
 async def latest_request(directory, channel, target, file_type):
+    if directory not in indexes:
+        return JSONResponse(f"{directory} not found!", status_code=404)
     index = indexes.get(directory)
-    if index:
-        if len(index.index["channels"]) > 1:
-            try:
-                return index.get_file_from_latest_version(channel, target, file_type)
-            except Exception as e:
-                return JSONResponse(e, status_code=404)
-    return JSONResponse("Not found", status_code=404)
+    if len(index.index["channels"]) == 0:
+        return JSONResponse("No channels found!", status_code=404)
+    try:
+        return index.get_file_from_latest_version(channel, target, file_type)
+    except Exception as e:
+        return JSONResponse(e, status_code=404)
 
 
-@router.get("/{directory}/reindex")
+@router.post("/{directory}/reindex")
 async def reindex_request(directory):
-    index = indexes.get(directory)
-    if index:
-        async with lock:
-            try:
-                indexes.get(directory).reindex()
-                return JSONResponse("ok")
-            except Exception as e:
-                logging.exception(e)
-                return JSONResponse("fail", status_code=500)
-    return JSONResponse("Not found", status_code=404)
+    if directory not in indexes:
+        return JSONResponse(f"{directory} not found!", status_code=404)
+    async with lock:
+        try:
+            indexes.get(directory).reindex()
+            return JSONResponse("Reindexing is done!")
+        except Exception as e:
+            logging.exception(e)
+            return JSONResponse("fail", status_code=500)
