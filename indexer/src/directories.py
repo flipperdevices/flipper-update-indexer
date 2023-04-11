@@ -5,6 +5,7 @@ import asyncio
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse, RedirectResponse
 from github import Repository
+
 from .parsers import parse_github_channels
 from .models import *
 from .settings import settings
@@ -122,7 +123,7 @@ indexes = {
 async def directory_request(directory):
     index = indexes.get(directory)
     if index:
-        return indexes.get(directory).index_json
+        return indexes.get(directory).index
     return JSONResponse("Not found", status_code=404)
 
 
@@ -134,7 +135,7 @@ async def directory_request(directory):
 async def latest_request(directory, channel, target, file_type):
     index = indexes.get(directory)
     if index:
-        if len(index.index_json["channels"]) > 1:
+        if len(index.index["channels"]) > 1:
             return index.get_file_from_latest_version(channel, target, file_type)
     return JSONResponse("Not found", status_code=404)
 

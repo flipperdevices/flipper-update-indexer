@@ -10,7 +10,7 @@ from .settings import settings
 
 
 def add_files_to_version(
-    version: Version, file_parser: FileParser, main_dir: str, sub_dir: str
+    version: Version, file_parser: FileParser, main_dir: str, сhannel_dir: str
 ) -> Version:
     """
     Method for adding a new artifact model to the selected version
@@ -18,12 +18,12 @@ def add_files_to_version(
         version:
         file_parser:
         main_dir:
-        sub_dir:
+        сhannel_dir:
 
     Returns:
         Modified model version in which the file model was added
     """
-    directory_path = os.path.join(settings.files_dir, main_dir, sub_dir)
+    directory_path = os.path.join(settings.files_dir, main_dir, сhannel_dir)
 
     if not os.path.isdir(directory_path):
         raise Exception(f"Directory {directory_path} not found!")
@@ -37,7 +37,7 @@ def add_files_to_version(
             continue
         version.add_file(
             VersionFile(
-                url=os.path.join(settings.base_url, main_dir, sub_dir, cur),
+                url=os.path.join(settings.base_url, main_dir, сhannel_dir, cur),
                 target=parsed_file.target,
                 type=parsed_file.type,
                 sha256=parsed_file.getSHA256(os.path.join(directory_path, cur)),
