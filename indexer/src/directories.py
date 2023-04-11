@@ -33,6 +33,11 @@ class DirectoryIndex:
         self.file_parser = file_parser
 
     def delete_empty_directories(self):
+        """
+        A method for cleaning directories that are empty
+        Returns:
+            Nothing
+        """
         main_dir = os.path.join(settings.files_dir, self.directory)
         for cur in os.listdir(main_dir):
             cur_dir = os.path.join(main_dir, cur)
@@ -42,20 +47,41 @@ class DirectoryIndex:
             shutil.rmtree(cur_dir)
             logging.info(f"Deleting {cur_dir}")
 
-    def delete_unlinked_directories(self, github_connect: Repository.Repository):
+    def delete_unlinked_directories(self, repository: Repository.Repository):
+        """
+        A method for cleaning directories that do not match
+        branches/releases in the repository
+        Args:
+            repository: Repository model
+
+        Returns:
+            Nothing
+        """
         main_dir = os.path.join(settings.files_dir, self.directory)
         for root, dirs, files in os.walk(main_dir):
             if len(files) == 0:
                 continue
             cur_dir = root.split(main_dir + "/")[1]
-            if is_branch_exist(github_connect, cur_dir):
+            if is_branch_exist(repository, cur_dir):
                 continue
-            if is_release_exist(github_connect, cur_dir):
+            if is_release_exist(repository, cur_dir):
                 continue
             shutil.rmtree(os.path.join(main_dir, cur_dir))
             logging.info(f"Deleting {cur_dir}")
 
     def reindex(self):
+        """
+        Method for starting reindexing. We get three channels - dev, release,
+        rc from the main repository in the git. We run through all 3 channels,
+        each channel has different versions inside. We create models for all
+        versions and stuff them with the path to the artifacts.
+
+        At the end of reindexing, all unnecessary branches and
+        empty directories are cleared
+
+        Returns:
+            Nothing
+        """
         try:
             repository = get_github_repository(
                 self.github_token, self.github_org, self.github_repo
@@ -72,6 +98,17 @@ class DirectoryIndex:
             raise e
 
     def get_file_from_latest_version(self: str, channel: str, target: str, file_type: str) -> str:
+        """
+        A method to get a file in the latest version of the
+        current directory by its target and type
+        Args:
+            channel: Channel type (release, rc, dev)
+            target: Operation System (linux, mac, win)
+            file_type: File Type
+
+        Returns:
+            String URL of file`s location
+        """
         target = target.replace("-", "/")
         try:
             channels = self.index["channels"]
@@ -112,6 +149,14 @@ indexes = {
 
 @router.get("/{directory}/directory.json")
 async def directory_request(directory):
+    """
+    Method for obtaining indices
+    Args:
+        directory: Repository name
+
+    Returns:
+        Indices in json
+    """
     if directory not in indexes:
         return JSONResponse(f"{directory} not found!", status_code=404)
     return indexes.get(directory).index
@@ -123,6 +168,18 @@ async def directory_request(directory):
     status_code=302,
 )
 async def latest_request(directory, channel, target, file_type):
+    """
+    A method for retrieving a file from the repository
+    of a specific version
+    Args:
+        directory: Repository name
+        channel: Channel type (release, rc, dev)
+        target: Operation System (linux, mac, win)
+        file_type: File Type
+
+    Returns:
+        Artifact file
+    """
     if directory not in indexes:
         return JSONResponse(f"{directory} not found!", status_code=404)
     index = indexes.get(directory)
@@ -136,6 +193,14 @@ async def latest_request(directory, channel, target, file_type):
 
 @router.post("/{directory}/reindex")
 async def reindex_request(directory):
+    """
+    Method for starting reindexing
+    Args:
+        directory: Repository name
+
+    Returns:
+        Reindex status
+    """
     if directory not in indexes:
         return JSONResponse(f"{directory} not found!", status_code=404)
     async with lock:
