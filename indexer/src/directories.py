@@ -144,4 +144,4 @@ async def reindex_request(directory):
             return JSONResponse("Reindexing is done!")
         except Exception as e:
             logging.exception(e)
-            return JSONResponse("fail", status_code=500)
+            return JSONResponse("Reindexing is failed!", status_code=500)

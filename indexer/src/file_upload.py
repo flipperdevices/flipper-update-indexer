@@ -49,6 +49,10 @@ def moveFiles(dest_dir: str, source_dir: str) -> None:
 async def create_upload_files(
     directory: str, files: List[UploadFile], branch: str = Form()
 ):
+    if directory not in indexes:
+        return JSONResponse(f"{directory} not found!", status_code=404)
+
+    reindex_dir = indexes.get(directory)
     path = os.path.join(settings.files_dir, directory, branch)
     temp_path = os.path.join(settings.temp_dir, directory, branch)
     async with lock:
@@ -59,16 +63,11 @@ async def create_upload_files(
             logging.info(f"Uploaded {len(files)} files")
         except Exception as e:
             logging.exception(e)
-            return JSONResponse("upload fail", status_code=500)
-        reindex_dir = indexes.get(directory)
-        if reindex_dir:
-            try:
-                reindex_dir.reindex()
-                return JSONResponse("ok")
-            except Exception:
-                return JSONResponse(
-                    f"upload passed, but {directory} reindex fail", status_code=500
-                )
-        else:
-            # todo: if no index is found, nothing happens
-            return JSONResponse("ok")
+            return JSONResponse(e, status_code=500)
+        try:
+            reindex_dir.reindex()
+            return JSONResponse("File uploaded, reindexing is done!")
+        except Exception as e:
+            return JSONResponse(
+                f"File uploaded, but error occurred during re-indexing: {e}", status_code=500
+            )
