@@ -14,12 +14,8 @@ from .models import qFlipperFileParser
 
 
 class DirectoryIndex:
+
     index: dict = Index().dict()
-    directory: str
-    github_token: str
-    github_repo: str
-    github_org: str
-    file_parser: FileParser
 
     def __init__(
         self,
@@ -36,25 +32,28 @@ class DirectoryIndex:
         self.github_org = github_org
         self.file_parser = file_parser
 
-    def deleteEmptyDirectories(self):
+    def delete_empty_directories(self):
         main_dir = os.path.join(settings.files_dir, self.directory)
         for cur in os.listdir(main_dir):
             cur_dir = os.path.join(main_dir, cur)
             dir_content = os.listdir(cur_dir)
-            if not len(dir_content):
-                shutil.rmtree(cur_dir)
-                logging.info(f"Deleting {cur_dir}")
+            if len(dir_content) > 0:
+                continue
+            shutil.rmtree(cur_dir)
+            logging.info(f"Deleting {cur_dir}")
 
-    def deleteUnlinkedDirectories(self, github_connect: Repository.Repository):
+    def delete_unlinked_directories(self, github_connect: Repository.Repository):
         main_dir = os.path.join(settings.files_dir, self.directory)
         for root, dirs, files in os.walk(main_dir):
-            if not len(files):
+            if len(files) == 0:
                 continue
             cur_dir = root.split(main_dir + "/")[1]
-            if not is_branch_exist(github_connect, cur_dir):
-                if not is_release_exist(github_connect, cur_dir):
-                    shutil.rmtree(os.path.join(main_dir, cur_dir))
-                    logging.info(f"Deleting {cur_dir}")
+            if is_branch_exist(github_connect, cur_dir):
+                continue
+            if is_release_exist(github_connect, cur_dir):
+                continue
+            shutil.rmtree(os.path.join(main_dir, cur_dir))
+            logging.info(f"Deleting {cur_dir}")
 
     def reindex(self):
         try:
@@ -65,20 +64,12 @@ class DirectoryIndex:
                 self.directory, self.file_parser, repository
             )
             logging.info(f"{self.directory} reindex complited")
-            self.deleteUnlinkedDirectories(repository)
-            self.deleteEmptyDirectories()
+            self.delete_unlinked_directories(repository)
+            self.delete_empty_directories()
         except Exception as e:
             logging.error(f"{self.directory} reindex faied")
             logging.exception(e)
             raise e
-
-    def reindexRequest(self):
-        try:
-            self.reindex()
-            return JSONResponse("ok")
-        except Exception as e:
-            logging.exception(e)
-            return JSONResponse("fail", status_code=500)
 
     def get_file_from_latest_version(self: str, channel: str, target: str, file_type: str) -> str:
         target = target.replace("-", "/")
@@ -95,7 +86,7 @@ class DirectoryIndex:
             return latest_version_file.get("url")
         except Exception as e:
             logging.exception(e)
-            return JSONResponse("Not found", status_code=404)
+            raise e
 
 
 router = APIRouter()
@@ -136,7 +127,10 @@ async def latest_request(directory, channel, target, file_type):
     index = indexes.get(directory)
     if index:
         if len(index.index["channels"]) > 1:
-            return index.get_file_from_latest_version(channel, target, file_type)
+            try:
+                return index.get_file_from_latest_version(channel, target, file_type)
+            except Exception as e:
+                return JSONResponse(e, status_code=404)
     return JSONResponse("Not found", status_code=404)
 
 
@@ -145,5 +139,10 @@ async def reindex_request(directory):
     index = indexes.get(directory)
     if index:
         async with lock:
-            return indexes.get(directory).reindexRequest()
+            try:
+                indexes.get(directory).reindex()
+                return JSONResponse("ok")
+            except Exception as e:
+                logging.exception(e)
+                return JSONResponse("fail", status_code=500)
     return JSONResponse("Not found", status_code=404)
