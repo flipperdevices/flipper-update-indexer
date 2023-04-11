@@ -1,11 +1,12 @@
 import os
 import shutil
-from fastapi import APIRouter, Form, UploadFile
-from fastapi.responses import JSONResponse
-from .settings import settings
 import logging
 import asyncio
+from typing import List
+from fastapi import APIRouter, Form, UploadFile
+from fastapi.responses import JSONResponse
 from .directories import indexes
+from .settings import settings
 
 
 router = APIRouter()
@@ -27,7 +28,7 @@ def cleanupCreateDir(path: str) -> None:
     os.makedirs(path, exist_ok=True)
 
 
-def saveFiles(path: str, safepath: str, files: list[UploadFile]) -> None:
+def saveFiles(path: str, safepath: str, files: List[UploadFile]) -> None:
     cleanupCreateDir(path)
     for file in files:
         filepath = os.path.join(path, file.filename)
@@ -46,7 +47,7 @@ def moveFiles(dest_dir: str, source_dir: str) -> None:
 
 @router.post("/{directory}/uploadfiles")
 async def create_upload_files(
-    directory: str, files: list[UploadFile], branch: str = Form()
+    directory: str, files: List[UploadFile], branch: str = Form()
 ):
     path = os.path.join(settings.files_dir, directory, branch)
     temp_path = os.path.join(settings.temp_dir, directory, branch)
@@ -69,4 +70,5 @@ async def create_upload_files(
                     f"upload passed, but {directory} reindex fail", status_code=500
                 )
         else:
+            # todo: if no index is found, nothing happens
             return JSONResponse("ok")

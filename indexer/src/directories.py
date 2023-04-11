@@ -5,15 +5,15 @@ import asyncio
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse, RedirectResponse
 from github import Repository
-from .dirparser import parseDirectory
-from .indextypes import *
+from .parsers import parse_github_channels
+from .models import *
 from .settings import settings
-from .indexer_github import indexerGithubConnect, isBranchExist, isReleaseExist
-from .extrafileparsers import qFlipperFileParser
+from .indexer_github import get_github_repository, is_branch_exist, is_release_exist
+from .models import qFlipperFileParser
 
 
 class DirectoryIndex:
-    index_json: dict = Index().dict()
+    index: dict = Index().dict()
     directory: str
     github_token: str
     github_repo: str
@@ -28,7 +28,7 @@ class DirectoryIndex:
         github_org: str,
         file_parser: FileParser = FileParser,
     ):
-        self.index_json = Index().dict()
+        self.index = Index().dict()
         self.directory = directory
         self.github_token = github_token
         self.github_repo = github_repo
@@ -50,21 +50,21 @@ class DirectoryIndex:
             if not len(files):
                 continue
             cur_dir = root.split(main_dir + "/")[1]
-            if not isBranchExist(github_connect, cur_dir):
-                if not isReleaseExist(github_connect, cur_dir):
+            if not is_branch_exist(github_connect, cur_dir):
+                if not is_release_exist(github_connect, cur_dir):
                     shutil.rmtree(os.path.join(main_dir, cur_dir))
                     logging.info(f"Deleting {cur_dir}")
 
     def reindex(self):
         try:
-            github_connect = indexerGithubConnect(
+            repository = get_github_repository(
                 self.github_token, self.github_org, self.github_repo
             )
-            self.index_json = parseDirectory(
-                self.directory, self.file_parser, github_connect
+            self.index = parse_github_channels(
+                self.directory, self.file_parser, repository
             )
             logging.info(f"{self.directory} reindex complited")
-            self.deleteUnlinkedDirectories(github_connect)
+            self.deleteUnlinkedDirectories(repository)
             self.deleteEmptyDirectories()
         except Exception as e:
             logging.error(f"{self.directory} reindex faied")
@@ -79,15 +79,15 @@ class DirectoryIndex:
             logging.exception(e)
             return JSONResponse("fail", status_code=500)
 
-    def getLatestVersion(self: str, channel: str, target: str, type: str) -> str:
+    def get_file_from_latest_version(self: str, channel: str, target: str, file_type: str) -> str:
         target = target.replace("-", "/")
         try:
-            channels = self.index_json["channels"]
+            channels = self.index["channels"]
             current_channel = next(filter(lambda c: c.get("id") == channel, channels))
             latest_version = current_channel.get("versions")[0]
             latest_version_file = next(
                 filter(
-                    lambda c: c.get("target") == target and c.get("type") == type,
+                    lambda c: c.get("target") == target and c.get("type") == file_type,
                     latest_version.get("files"),
                 )
             )
@@ -131,11 +131,11 @@ async def directory_request(directory):
     response_class=RedirectResponse,
     status_code=302,
 )
-async def latest_request(directory, channel, target, type):
+async def latest_request(directory, channel, target, file_type):
     index = indexes.get(directory)
     if index:
         if len(index.index_json["channels"]) > 1:
-            return index.getLatestVersion(channel, target, type)
+            return index.get_file_from_latest_version(channel, target, file_type)
     return JSONResponse("Not found", status_code=404)
 
 

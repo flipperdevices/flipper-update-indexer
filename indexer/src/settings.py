@@ -1,5 +1,6 @@
 import os
 from pydantic import BaseModel, ValidationError, validator
+from typing import List
 
 
 class Settings(BaseModel):
@@ -14,14 +15,14 @@ class Settings(BaseModel):
     firmware_github_repo: str
     qFlipper_github_token: str
     qFlipper_github_repo: str
-    private_paths: list[str]
+    private_paths: List[str]
 
-    @validator("*", each_item=True)
-    def emptyString(cls, elem):
-        if isinstance(elem, str):
-            if not elem or elem.isspace():
-                raise ValueError("Variable is empty")
-        return elem
+    # @validator("*", each_item=True)
+    # def emptyString(cls, elem):
+    #     if isinstance(elem, str):
+    #         if not elem or elem.isspace():
+    #             raise ValueError("Variable is empty")
+    #     return elem
 
 
 settings = Settings(
