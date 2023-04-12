@@ -1,5 +1,5 @@
 import os
-from pydantic import BaseModel, ValidationError, validator
+from pydantic import BaseModel
 from typing import List
 
 
@@ -16,13 +16,6 @@ class Settings(BaseModel):
     qFlipper_github_token: str
     qFlipper_github_repo: str
     private_paths: List[str]
-
-    # @validator("*", each_item=True)
-    # def emptyString(cls, elem):
-    #     if isinstance(elem, str):
-    #         if not elem or elem.isspace():
-    #             raise ValueError("Variable is empty")
-    #     return elem
 
 
 settings = Settings(

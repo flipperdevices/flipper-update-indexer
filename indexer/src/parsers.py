@@ -119,9 +119,7 @@ def parse_rc_channel(
 
 
 def parse_github_channels(
-    directory: str,
-    file_parser: FileParser,
-    repository: Repository.Repository
+    directory: str, file_parser: FileParser, repository: Repository.Repository
 ) -> dict:
     """
     Method for creating a new index with channels
