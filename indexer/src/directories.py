@@ -3,7 +3,7 @@ import asyncio
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse, RedirectResponse
 
-from repository import indexes
+from .repository import indexes
 
 
 router = APIRouter()

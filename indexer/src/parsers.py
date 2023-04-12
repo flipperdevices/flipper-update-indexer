@@ -134,10 +134,7 @@ def parse_github_channels(
     json = Index()
     json.add_channel(
         parse_dev_channel(
-            copy.deepcopy(development_channel),
-            directory,
-            file_parser,
-            repository
+            copy.deepcopy(development_channel), directory, file_parser, repository
         )
     )
     json.add_channel(
