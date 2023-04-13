@@ -1,16 +1,22 @@
 import logging
-from github import Github, Repository
+from github import Github, Repository, Branch
 from .models import Version
 
 
 def is_branch_exist(repository: Repository.Repository, branch: str) -> bool:
-    branches = repository.get_branches()
-    return branch in branches
+    try:
+        repository.get_branch(branch)
+    except Exception:
+        return False
+    return True
 
 
 def is_release_exist(repository: Repository.Repository, release: str) -> bool:
-    releases = repository.get_releases()
-    return release in releases
+    try:
+        repository.get_release(release)
+    except Exception:
+        return False
+    return True
 
 
 def get_github_repository(token: str, org_name: str, repo_name: str) -> Repository:

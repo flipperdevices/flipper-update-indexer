@@ -36,6 +36,8 @@ class RepositoryIndex:
         """
         main_dir = os.path.join(settings.files_dir, self.directory)
         for cur in os.listdir(main_dir):
+            if cur.startswith("."):
+                continue
             cur_dir = os.path.join(main_dir, cur)
             dir_content = os.listdir(cur_dir)
             if len(dir_content) > 0:
@@ -56,6 +58,9 @@ class RepositoryIndex:
         main_dir = os.path.join(settings.files_dir, self.directory)
         for root, dirs, files in os.walk(main_dir):
             if len(files) == 0:
+                continue
+            # skip .DS_store files
+            if len(files) == 1 and files[0].startswith("."):
                 continue
             cur_dir = root.split(main_dir + "/")[1]
             if is_branch_exist(repository, cur_dir):

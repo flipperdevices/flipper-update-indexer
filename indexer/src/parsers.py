@@ -29,6 +29,9 @@ def add_files_to_version(
         raise Exception(f"Directory {directory_path} not found!")
 
     for cur in sorted(os.listdir(directory_path)):
+        # skip .DS_store files
+        if cur.startswith("."):
+            continue
         parsed_file = file_parser()
         try:
             parsed_file.parse(cur)
