@@ -14,12 +14,27 @@ router = APIRouter()
 lock = asyncio.Lock()
 
 
+def check_if_path_inside_allowed_path(allowed_path: str, path: str) -> None:
+    allowed_path = os.path.abspath(allowed_path)
+    user_path = os.path.abspath(path)
+    if not user_path.startswith(allowed_path + os.sep):
+        raise Exception(f"User specified path {path} is not inside {allowed_path}")
+
+
 def cleanup_dir(path: str) -> None:
     if os.path.isdir(path):
         shutil.rmtree(path)
     elif os.path.isfile(path):
         os.remove(path)
     os.makedirs(path, exist_ok=True)
+
+
+def save_files(path: str, files: List[UploadFile]) -> None:
+    cleanup_dir(path)
+    for file in files:
+        filepath = os.path.join(path, file.filename)
+        with open(filepath, "wb") as out_file:
+            out_file.write(file.file.read())
 
 
 def move_files(dest_dir: str, source_dir: str) -> None:
@@ -49,9 +64,17 @@ async def create_upload_files(
 
     reindex_dir = indexes.get(directory)
     path = os.path.join(settings.files_dir, directory, branch)
+
+    try:
+        check_if_path_inside_allowed_path(settings.files_dir, path)
+    except Exception as e:
+        logging.exception(e)
+        return JSONResponse(str(e), status_code=500)
+
     async with lock:
         try:
             with tempfile.TemporaryDirectory() as temp_path:
+                save_files(temp_path, files)
                 move_files(path, temp_path)
             logging.info(f"Uploaded {len(files)} files")
         except Exception as e:
