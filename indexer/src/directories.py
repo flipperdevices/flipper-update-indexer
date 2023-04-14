@@ -54,7 +54,7 @@ async def latest_request(directory, channel, target, file_type):
         return JSONResponse(e, status_code=404)
 
 
-@router.post("/{directory}/reindex")
+@router.get("/{directory}/reindex")
 async def reindex_request(directory):
     """
     Method for starting reindexing
