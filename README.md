@@ -1,5 +1,24 @@
 # Flipper Zero Update Indexer and Uploader
 
+## Start localy
+```bash
+    INDEXER_FIRMWARE_GITHUB_TOKEN= \
+    INDEXER_QFLIPPER_GITHUB_TOKEN= \
+    INDEXER_GITHUB_ORGANIZATION= \
+    INDEXER_QFLIPPER_GITHUB_REPO= \
+    INDEXER_FIRMWARE_GITHUB_REPO= \
+    INDEXER_TOKEN= \
+    INDEXER_BASE_URL= \
+    INDEXER_TEMP_DIR= \
+    INDEXER_FILES_DIR= \
+    make run
+```
+
+Clearing:
+```bash
+    make clean
+```
+
 ## Requests example
 Get index
 ```bash

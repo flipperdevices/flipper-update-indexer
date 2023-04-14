@@ -1,10 +1,35 @@
-from github import Github, Repository, GithubException
-from .settings import settings
-from .indextypes import Version
 import logging
+from github import Github, Repository, Branch
+from .models import Version
 
 
-def indexerGithubConnect(token: str, org_name: str, repo_name: str):
+def is_branch_exist(repository: Repository.Repository, branch: str) -> bool:
+    try:
+        repository.get_branch(branch)
+    except Exception:
+        return False
+    return True
+
+
+def is_release_exist(repository: Repository.Repository, release: str) -> bool:
+    try:
+        repository.get_release(release)
+    except Exception:
+        return False
+    return True
+
+
+def get_github_repository(token: str, org_name: str, repo_name: str) -> Repository:
+    """
+    A method to get a GitHub repository by name
+    Args:
+        token: Git token for authorization
+        org_name: Organization name
+        repo_name: Repository name
+
+    Returns:
+        Repository object
+    """
     try:
         git = Github(token)
         org = git.get_organization(org_name)
@@ -15,34 +40,19 @@ def indexerGithubConnect(token: str, org_name: str, repo_name: str):
         raise e
 
 
-def isBranchExist(connect: Repository.Repository, branch: str) -> bool:
-    try:
-        connect.get_branch(branch)
-        return True
-    except GithubException as e:
-        error_code = str(e).split(" ")[0]
-        if error_code == "404":
-            return False
-        else:
-            raise e
+def get_dev_version(repository: Repository.Repository) -> Version:
+    """
+    A method to retrieve the last commit in a
+    dev branch and build a model from it
+    Args:
+        repository: Repo object
 
-
-def isReleaseExist(connect: Repository.Repository, release: str) -> bool:
-    try:
-        connect.get_release(release)
-        return True
-    except GithubException as e:
-        error_code = str(e).split(" ")[0]
-        if error_code == "404":
-            return False
-        else:
-            raise e
-
-
-def getDevDetails(connect: Repository.Repository, isRC: bool) -> Version:
-    commits = connect.get_commits()
-    if not commits.totalCount:
-        raise Exception(f"Failed to get commits")
+    Returns:
+        Commit model
+    """
+    commits = repository.get_commits()
+    if commits.totalCount == 0:
+        raise Exception(f"No comments found!")
     last_commit = commits[0]
     return Version(
         version=last_commit.sha[:8],
@@ -51,17 +61,41 @@ def getDevDetails(connect: Repository.Repository, isRC: bool) -> Version:
     )
 
 
-def getReleaseDetails(
-    connect: Repository.Repository, directory: str, isRC: bool
-) -> Version:
-    releases = connect.get_releases()
-    if not releases.totalCount:
-        raise Exception(f"Failed to get commits")
-    last_release = next(filter(lambda c: c.prerelease == isRC, connect.get_releases()))
-    for cur in releases:
-        if cur.prerelease == isRC:
-            last_release = cur
-            break
+def get_release_version(repository: Repository.Repository) -> Version:
+    """
+    A method to retrieve the last commit of release
+    and build a model from it
+    Args:
+        repository: Repo object
+
+    Returns:
+        Commit model
+    """
+    releases = repository.get_releases()
+    if releases.totalCount == 0:
+        raise Exception(f"No releases found!")
+    last_release = next(filter(lambda c: c.prerelease, repository.get_releases()))
+    return Version(
+        version=last_release.title,
+        changelog=last_release.body,
+        timestamp=int(last_release.created_at.timestamp()),
+    )
+
+
+def get_rc_version(repository: Repository.Repository) -> Version:
+    """
+    A method to retrieve the last commit of rc
+    and build a model from it
+    Args:
+        repository: Repo object
+
+    Returns:
+        Commit model
+    """
+    releases = repository.get_releases()
+    if releases.totalCount == 0:
+        raise Exception(f"No release-candidates found!")
+    last_release = next(filter(lambda c: not c.prerelease, repository.get_releases()))
     return Version(
         version=last_release.title,
         changelog=last_release.body,
