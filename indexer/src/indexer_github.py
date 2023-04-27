@@ -74,12 +74,15 @@ def get_release_version(repository: Repository.Repository) -> Version:
     releases = repository.get_releases()
     if releases.totalCount == 0:
         raise Exception(f"No releases found!")
-    last_release = next(filter(lambda c: c.prerelease, repository.get_releases()))
-    return Version(
-        version=last_release.title,
-        changelog=last_release.body,
-        timestamp=int(last_release.created_at.timestamp()),
-    )
+    try:
+        last_release = next(filter(lambda c: c.prerelease, repository.get_releases()))
+        return Version(
+            version=last_release.title,
+            changelog=last_release.body,
+            timestamp=int(last_release.created_at.timestamp()),
+        )
+    except StopIteration:
+        return None
 
 
 def get_rc_version(repository: Repository.Repository) -> Version:
@@ -95,9 +98,14 @@ def get_rc_version(repository: Repository.Repository) -> Version:
     releases = repository.get_releases()
     if releases.totalCount == 0:
         raise Exception(f"No release-candidates found!")
-    last_release = next(filter(lambda c: not c.prerelease, repository.get_releases()))
-    return Version(
-        version=last_release.title,
-        changelog=last_release.body,
-        timestamp=int(last_release.created_at.timestamp()),
-    )
+    try:
+        last_release = next(
+            filter(lambda c: not c.prerelease, repository.get_releases())
+        )
+        return Version(
+            version=last_release.title,
+            changelog=last_release.body,
+            timestamp=int(last_release.created_at.timestamp()),
+        )
+    except StopIteration:
+        return None

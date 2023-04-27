@@ -91,3 +91,15 @@ class qFlipperFileParser(FileParser):
                 raise Exception(f"Cannot parse target")
         self.target = target + "/" + jsonArch
         self.type = file_type
+
+
+class blackmagickFileParser(FileParser):
+    def parse(self, filename: str) -> None:
+        regex = re.compile(
+            r"^blackmagic-firmware-(\w+)-(\w+)-([0-9.]+(-rc)?|(dev-\w+-\w+))\.(\w+)$"
+        )
+        match = regex.match(filename)
+        if not match:
+            raise Exception(f"Unknown file {filename}")
+        self.target = match.group(1)
+        self.type = match.group(2) + "_" + match.group(6)

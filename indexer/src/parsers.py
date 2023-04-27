@@ -92,8 +92,9 @@ def parse_release_channel(
         New channel with added version
     """
     version = indexer_github.get_release_version(repository)
-    version = add_files_to_version(version, file_parser, directory, version.version)
-    channel.add_version(version)
+    if version:
+        version = add_files_to_version(version, file_parser, directory, version.version)
+        channel.add_version(version)
     return channel
 
 

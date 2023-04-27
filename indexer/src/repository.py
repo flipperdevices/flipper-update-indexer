@@ -7,7 +7,7 @@ from .parsers import parse_github_channels
 from .models import *
 from .settings import settings
 from .indexer_github import get_github_repository, is_branch_exist, is_release_exist
-from .models import qFlipperFileParser
+from .models import qFlipperFileParser, blackmagickFileParser
 
 
 class RepositoryIndex:
@@ -130,17 +130,24 @@ class RepositoryIndex:
 
 
 indexes = {
-    "firmware": RepositoryIndex(
-        directory="firmware",
-        github_token=settings.firmware_github_token,
-        github_repo=settings.firmware_github_repo,
+    #    "firmware": RepositoryIndex(
+    #        directory="firmware",
+    #        github_token=settings.firmware_github_token,
+    #        github_repo=settings.firmware_github_repo,
+    #        github_org=settings.github_org,
+    #    ),
+    #    "qFlipper": RepositoryIndex(
+    #        directory="qFlipper",
+    #        github_token=settings.qFlipper_github_token,
+    #        github_repo=settings.qFlipper_github_repo,
+    #        github_org=settings.github_org,
+    #        file_parser=qFlipperFileParser,
+    #    ),
+    "blackmagic-firmware": RepositoryIndex(
+        directory="blackmagic-firmware",
+        github_token=settings.blackmagick_github_token,
+        github_repo=settings.blackmagick_github_repo,
         github_org=settings.github_org,
-    ),
-    "qFlipper": RepositoryIndex(
-        directory="qFlipper",
-        github_token=settings.qFlipper_github_token,
-        github_repo=settings.qFlipper_github_repo,
-        github_org=settings.github_org,
-        file_parser=qFlipperFileParser,
+        file_parser=blackmagickFileParser,
     ),
 }
