@@ -19,6 +19,10 @@ def is_release_exist(repository: Repository.Repository, release: str) -> bool:
     return True
 
 
+def is_tag_exist(repository: Repository.Repository, tag: str) -> bool:
+    return any(filter(lambda t: t.name == tag, repository.get_tags()))
+
+
 def get_github_repository(token: str, org_name: str, repo_name: str) -> Repository:
     """
     A method to get a GitHub repository by name

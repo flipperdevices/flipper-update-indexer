@@ -6,7 +6,12 @@ from github import Repository
 from .parsers import parse_github_channels
 from .models import *
 from .settings import settings
-from .indexer_github import get_github_repository, is_branch_exist, is_release_exist
+from .indexer_github import (
+    get_github_repository,
+    is_branch_exist,
+    is_release_exist,
+    is_tag_exist,
+)
 from .models import qFlipperFileParser, blackmagickFileParser
 
 
@@ -66,6 +71,8 @@ class RepositoryIndex:
             if is_branch_exist(repository, cur_dir):
                 continue
             if is_release_exist(repository, cur_dir):
+                continue
+            if is_tag_exist(repository, cur_dir):
                 continue
             shutil.rmtree(os.path.join(main_dir, cur_dir))
             logging.info(f"Deleting {cur_dir}")
