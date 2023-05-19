@@ -137,19 +137,19 @@ class RepositoryIndex:
 
 
 indexes = {
-    #    "firmware": RepositoryIndex(
-    #        directory="firmware",
-    #        github_token=settings.firmware_github_token,
-    #        github_repo=settings.firmware_github_repo,
-    #        github_org=settings.github_org,
-    #    ),
-    #    "qFlipper": RepositoryIndex(
-    #        directory="qFlipper",
-    #        github_token=settings.qFlipper_github_token,
-    #        github_repo=settings.qFlipper_github_repo,
-    #        github_org=settings.github_org,
-    #        file_parser=qFlipperFileParser,
-    #    ),
+    "firmware": RepositoryIndex(
+        directory="firmware",
+        github_token=settings.firmware_github_token,
+        github_repo=settings.firmware_github_repo,
+        github_org=settings.github_org,
+    ),
+    "qFlipper": RepositoryIndex(
+        directory="qFlipper",
+        github_token=settings.qFlipper_github_token,
+        github_repo=settings.qFlipper_github_repo,
+        github_org=settings.github_org,
+        file_parser=qFlipperFileParser,
+    ),
     "blackmagic-firmware": RepositoryIndex(
         directory="blackmagic-firmware",
         github_token=settings.blackmagick_github_token,
