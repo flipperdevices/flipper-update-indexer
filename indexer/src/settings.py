@@ -15,8 +15,8 @@ class Settings(BaseModel):
     firmware_github_repo: str
     qFlipper_github_token: str
     qFlipper_github_repo: str
-    blackmagick_github_token: str
-    blackmagick_github_repo: str
+    blackmagic_github_token: str
+    blackmagic_github_repo: str
     private_paths: List[str]
 
 
@@ -32,7 +32,7 @@ settings = Settings(
     firmware_github_repo=os.getenv("INDEXER_FIRMWARE_GITHUB_REPO"),
     qFlipper_github_token=os.getenv("INDEXER_QFLIPPER_GITHUB_TOKEN"),
     qFlipper_github_repo=os.getenv("INDEXER_QFLIPPER_GITHUB_REPO"),
-    blackmagick_github_token=os.getenv("INDEXER_BLACKMAGICK_GITHUB_TOKEN"),
-    blackmagick_github_repo=os.getenv("INDEXER_BLACKMAGICK_GITHUB_REPO"),
+    blackmagic_github_token=os.getenv("INDEXER_BLACKMAGIC_GITHUB_TOKEN"),
+    blackmagic_github_repo=os.getenv("INDEXER_BLACKMAGIC_GITHUB_REPO"),
     private_paths=["reindex", "uploadfiles"],
 )

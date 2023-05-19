@@ -12,7 +12,7 @@ from .indexer_github import (
     is_release_exist,
     is_tag_exist,
 )
-from .models import qFlipperFileParser, blackmagickFileParser
+from .models import qFlipperFileParser, blackmagicFileParser
 
 
 class RepositoryIndex:
@@ -152,9 +152,9 @@ indexes = {
     ),
     "blackmagic-firmware": RepositoryIndex(
         directory="blackmagic-firmware",
-        github_token=settings.blackmagick_github_token,
-        github_repo=settings.blackmagick_github_repo,
+        github_token=settings.blackmagic_github_token,
+        github_repo=settings.blackmagic_github_repo,
         github_org=settings.github_org,
-        file_parser=blackmagickFileParser,
+        file_parser=blackmagicFileParser,
     ),
 }

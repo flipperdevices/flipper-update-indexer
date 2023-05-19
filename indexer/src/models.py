@@ -93,7 +93,7 @@ class qFlipperFileParser(FileParser):
         self.type = file_type
 
 
-class blackmagickFileParser(FileParser):
+class blackmagicFileParser(FileParser):
     def parse(self, filename: str) -> None:
         regex = re.compile(
             r"^blackmagic-firmware-(\w+)-(\w+)-([0-9.]+(-rc)?|(dev-\w+-\w+))\.(\w+)$"
