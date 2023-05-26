@@ -26,7 +26,7 @@ async def directory_request(directory):
 
 
 @router.get(
-    "/{directory}/{channel}/{target}/{type}",
+    "/{directory}/{channel}/{target}/{file_type}",
     response_class=RedirectResponse,
     status_code=302,
 )
