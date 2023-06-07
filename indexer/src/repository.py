@@ -68,11 +68,11 @@ class RepositoryIndex:
             if len(files) == 1 and files[0].startswith("."):
                 continue
             cur_dir = root.split(main_dir + "/")[1]
-            if is_branch_exist(repository, cur_dir):
-                continue
             if is_release_exist(repository, cur_dir):
                 continue
             if is_tag_exist(repository, cur_dir):
+                continue
+            if is_branch_exist(repository, cur_dir):
                 continue
             shutil.rmtree(os.path.join(main_dir, cur_dir))
             logging.info(f"Deleting {cur_dir}")
