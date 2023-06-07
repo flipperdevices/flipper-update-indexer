@@ -1,9 +1,7 @@
 import os
 import logging
 import copy
-from github import Repository
 
-from . import indexer_github
 from .models import *
 from .channels import *
 from .settings import settings
@@ -53,7 +51,7 @@ def parse_dev_channel(
     channel: Channel,
     directory: str,
     file_parser: FileParser,
-    repository: Repository.Repository,
+    indexer_github: IndexerGithub,
 ) -> Channel:
     """
     Method for creating a new version with a file
@@ -62,12 +60,11 @@ def parse_dev_channel(
         channel: Channel model (-> dev)
         directory: Save directory
         file_parser: The method by which the file piercing will take place (qFlipper, FileParser)
-        repository: Repository model
 
     Returns:
         New channel with added version
     """
-    version = indexer_github.get_dev_version(repository)
+    version = indexer_github.get_dev_version()
     version = add_files_to_version(version, file_parser, directory, "dev")
     channel.add_version(version)
     return channel
@@ -77,7 +74,7 @@ def parse_release_channel(
     channel: Channel,
     directory: str,
     file_parser: FileParser,
-    repository: Repository.Repository,
+    indexer_github: IndexerGithub,
 ) -> Channel:
     """
     Method for creating a new version with a file
@@ -86,12 +83,11 @@ def parse_release_channel(
         channel: Channel model (-> release)
         directory: Save directory
         file_parser: The method by which the file piercing will take place (qFlipper, FileParser)
-        repository: Repository model
 
     Returns:
         New channel with added version
     """
-    version = indexer_github.get_release_version(repository)
+    version = indexer_github.get_release_version()
     if version:
         version = add_files_to_version(version, file_parser, directory, version.version)
         channel.add_version(version)
@@ -102,7 +98,7 @@ def parse_rc_channel(
     channel: Channel,
     directory: str,
     file_parser: FileParser,
-    repository: Repository.Repository,
+    indexer_github: IndexerGithub,
 ) -> Channel:
     """
     Method for creating a new version with a file
@@ -111,26 +107,24 @@ def parse_rc_channel(
         channel: Channel model (-> release-candidate)
         directory: Save directory
         file_parser: The method by which the file piercing will take place (qFlipper, FileParser)
-        repository: Repository model
 
     Returns:
         New channel with added version
     """
-    version = indexer_github.get_rc_version(repository)
+    version = indexer_github.get_rc_version()
     version = add_files_to_version(version, file_parser, directory, version.version)
     channel.add_version(version)
     return channel
 
 
 def parse_github_channels(
-    directory: str, file_parser: FileParser, repository: Repository.Repository
+    directory: str, file_parser: FileParser, indexer_github: IndexerGithub
 ) -> dict:
     """
     Method for creating a new index with channels
     Args:
         directory: Save directory
         file_parser: The method by which the file piercing will take place (qFlipper, FileParser)
-        repository: Repository model
 
     Returns:
         New index with added channels
@@ -138,7 +132,7 @@ def parse_github_channels(
     json = Index()
     json.add_channel(
         parse_dev_channel(
-            copy.deepcopy(development_channel), directory, file_parser, repository
+            copy.deepcopy(development_channel), directory, file_parser, indexer_github
         )
     )
     json.add_channel(
@@ -146,15 +140,12 @@ def parse_github_channels(
             copy.deepcopy(release_candidate_channel),
             directory,
             file_parser,
-            repository,
+            indexer_github,
         )
     )
     json.add_channel(
         parse_rc_channel(
-            copy.deepcopy(release_channel),
-            directory,
-            file_parser,
-            repository,
+            copy.deepcopy(release_channel), directory, file_parser, indexer_github
         )
     )
     return json.dict()

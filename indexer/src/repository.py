@@ -1,22 +1,16 @@
 import os
 import shutil
 import logging
-from github import Repository
 
 from .parsers import parse_github_channels
 from .models import *
 from .settings import settings
-from .indexer_github import (
-    get_github_repository,
-    is_branch_exist,
-    is_release_exist,
-    is_tag_exist,
-)
 from .models import qFlipperFileParser, blackmagicFileParser
 
 
 class RepositoryIndex:
-    index: dict = Index().dict()
+    index: dict
+    indexer_github: IndexerGithub
 
     def __init__(
         self,
@@ -27,10 +21,9 @@ class RepositoryIndex:
         file_parser: FileParser = FileParser,
     ):
         self.index = Index().dict()
+        self.indexer_github = IndexerGithub()
+        self.indexer_github.login(github_token, github_repo, github_org)
         self.directory = directory
-        self.github_token = github_token
-        self.github_repo = github_repo
-        self.github_org = github_org
         self.file_parser = file_parser
 
     def delete_empty_directories(self):
@@ -50,16 +43,17 @@ class RepositoryIndex:
             shutil.rmtree(cur_dir)
             logging.info(f"Deleting {cur_dir}")
 
-    def delete_unlinked_directories(self, repository: Repository.Repository):
+    def delete_unlinked_directories(self):
         """
         A method for cleaning directories that do not match
         branches/releases in the repository
         Args:
-            repository: Repository model
+            Nothing
 
         Returns:
             Nothing
         """
+        self.indexer_github.sync_info()
         main_dir = os.path.join(settings.files_dir, self.directory)
         for root, dirs, files in os.walk(main_dir):
             if len(files) == 0:
@@ -68,11 +62,11 @@ class RepositoryIndex:
             if len(files) == 1 and files[0].startswith("."):
                 continue
             cur_dir = root.split(main_dir + "/")[1]
-            if is_release_exist(repository, cur_dir):
+            if self.indexer_github.is_release_exist(cur_dir):
                 continue
-            if is_tag_exist(repository, cur_dir):
+            if self.indexer_github.is_tag_exist(cur_dir):
                 continue
-            if is_branch_exist(repository, cur_dir):
+            if self.indexer_github.is_branch_exist(cur_dir):
                 continue
             shutil.rmtree(os.path.join(main_dir, cur_dir))
             logging.info(f"Deleting {cur_dir}")
@@ -91,14 +85,11 @@ class RepositoryIndex:
             Nothing
         """
         try:
-            repository = get_github_repository(
-                self.github_token, self.github_org, self.github_repo
-            )
             self.index = parse_github_channels(
-                self.directory, self.file_parser, repository
+                self.directory, self.file_parser, self.indexer_github
             )
             logging.info(f"{self.directory} reindex complited")
-            self.delete_unlinked_directories(repository)
+            self.delete_unlinked_directories()
             self.delete_empty_directories()
         except Exception as e:
             logging.error(f"{self.directory} reindex failed")

@@ -7,7 +7,6 @@ class Settings(BaseModel):
     port: int
     workers: int
     files_dir: str
-    temp_dir: str
     base_url: str
     token: str
     github_org: str
@@ -24,7 +23,6 @@ settings = Settings(
     port=8000,
     workers=1,
     files_dir=os.getenv("INDEXER_FILES_DIR"),
-    temp_dir=os.getenv("INDEXER_TEMP_DIR"),
     base_url=os.getenv("INDEXER_BASE_URL"),
     token=os.getenv("INDEXER_TOKEN"),
     github_org=os.getenv("INDEXER_GITHUB_ORGANIZATION"),
