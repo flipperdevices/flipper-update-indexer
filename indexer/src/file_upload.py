@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import logging
 import asyncio
@@ -12,6 +13,12 @@ from .settings import settings
 
 router = APIRouter()
 lock = asyncio.Lock()
+# it's global just for speed up via regex pre-compiling on app start
+__reindex_regexp__ = re.compile(r"^((\d+\.\d+\.\d+)($|(-rc$)))|dev$")
+
+
+def is_directory_reindex_needed(branch: str) -> bool:
+    return bool(__reindex_regexp__.match(branch))
 
 
 def check_if_path_inside_allowed_path(allowed_path: str, path: str) -> None:
@@ -80,11 +87,14 @@ async def create_upload_files(
         except Exception as e:
             logging.exception(e)
             return JSONResponse(e, status_code=500)
-        try:
-            reindex_dir.reindex()
-            return JSONResponse("File uploaded, reindexing is done!")
-        except Exception as e:
-            return JSONResponse(
-                f"File uploaded, but error occurred during re-indexing: {e}",
-                status_code=500,
-            )
+        if is_directory_reindex_needed():
+            try:
+                reindex_dir.reindex()
+                return JSONResponse("File uploaded, reindexing is done!")
+            except Exception as e:
+                return JSONResponse(
+                    f"File uploaded, but error occurred during re-indexing: {e}",
+                    status_code=500,
+                )
+        else:
+            return JSONResponse("File uploaded, reindexing isn't needed!")
