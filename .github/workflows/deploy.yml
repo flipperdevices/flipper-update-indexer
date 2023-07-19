@@ -39,11 +39,3 @@ jobs:
       - name: 'Upload docker image'
         run: |
           docker push "$IMAGE_NAME:$IMAGE_TAG"
-
-      - name: 'Trigger k8s to use new image'
-        uses: peter-evans/repository-dispatch@v2
-        with:
-          repository: ${{ secrets.INFRASTRUCTURE_REPO }}
-          token: ${{ secrets.K8S_GITHUB_PAT }}
-          event-type: flipper-update-indexer-deploy
-          client-payload: '{"image_tag": "${{steps.tag.outputs.image_tag}}"}'
