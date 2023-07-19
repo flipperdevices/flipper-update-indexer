@@ -7,7 +7,7 @@ COPY startup.sh /app/
 WORKDIR /app
 
 RUN apk update
-RUN apk add tzdata nginx-mod-http-fancyindex bash
+RUN apk add tzdata nginx-mod-http-fancyindex nginx-mod-http-headers-more bash
 RUN python3 -m pip install -r requirements.txt
 
 CMD ["/bin/bash", "startup.sh"]
