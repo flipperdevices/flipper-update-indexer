@@ -88,7 +88,7 @@ class RepositoryIndex:
             self.index = parse_github_channels(
                 self.directory, self.file_parser, self.indexer_github
             )
-            logging.info(f"{self.directory} reindex complited")
+            logging.info(f"{self.directory} reindex OK")
             self.delete_unlinked_directories()
             self.delete_empty_directories()
         except Exception as e:
