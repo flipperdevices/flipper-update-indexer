@@ -57,8 +57,9 @@ def move_files(dest_dir: str, source_dir: str, version_token: str) -> None:
         do_cleanup = True
     if do_cleanup:
         cleanup_dir(dest_dir)
-        with open(token_file_path, "w") as token_file:
-            token_file.write(version_token)
+        if version_token:
+            with open(token_file_path, "w") as token_file:
+                token_file.write(version_token)
 
     for file in os.listdir(source_dir):
         sourcefilepath = os.path.join(source_dir, file)
