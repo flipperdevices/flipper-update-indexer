@@ -69,7 +69,10 @@ def move_files(dest_dir: str, source_dir: str, version_token: str) -> None:
 
 @router.post("/{directory}/uploadfiles")
 async def create_upload_files(
-    directory: str, files: List[UploadFile], branch: str = Form(), version_token: str = Form(default="")
+    directory: str,
+    files: List[UploadFile],
+    branch: str = Form(),
+    version_token: str = Form(default=""),
 ):
     """
     A method to upload files in a certain directory
