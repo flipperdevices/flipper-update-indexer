@@ -7,6 +7,7 @@ from fastapi import FastAPI, Request, Response
 from src import directories, file_upload, security
 from src.directories import indexes
 from src.settings import settings
+from pygelf import GelfTcpHandler
 
 app = FastAPI(docs_url=None, redoc_url=None)
 
@@ -34,11 +35,18 @@ app.include_router(directories.router)
 
 
 def main() -> None:
-    logging.basicConfig(
-        level=logging.INFO,
-        stream=sys.stdout,
-        format="%(levelname)s[%(filename)s:%(funcName)s]: %(message)s",
-    )
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    if settings.kubernetes_namespace:
+        handler = GelfTcpHandler(
+            host=settings.gelf_host,
+            port=settings.gelf_port,
+            _kubernetes_namespace_name=settings.kubernetes_namespace,
+            _kubernetes_app_name=settings.kubernetes_app,
+            _kubernetes_container_name=settings.kubernetes_container,
+            _kubernetes_pod_name=settings.kubernetes_pod,
+        )
+        logger.addHandler(handler)
     uvicorn.run(
         "main:app", host="0.0.0.0", port=settings.port, workers=settings.workers
     )

@@ -4,3 +4,4 @@ python-multipart==0.0.5
 jsonschema==4.17.3
 PyGithub==1.57
 black==22.8.0
+pygelf==0.4.2
