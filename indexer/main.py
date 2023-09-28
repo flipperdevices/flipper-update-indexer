@@ -37,7 +37,7 @@ app.include_router(directories.router)
 def main() -> None:
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
-    if settings.kubernetes_namespace:
+    if settings.kubernetes_namespace and settings.gelf_host and settings.gelf_port:
         handler = GelfTcpHandler(
             host=settings.gelf_host,
             port=settings.gelf_port,
