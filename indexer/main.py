@@ -36,7 +36,7 @@ app.include_router(directories.router)
 
 def main() -> None:
     logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.WARN)
     if settings.kubernetes_namespace and settings.gelf_host and settings.gelf_port:
         handler = GelfTcpHandler(
             host=settings.gelf_host,
@@ -48,7 +48,11 @@ def main() -> None:
         )
         logger.addHandler(handler)
     uvicorn.run(
-        "main:app", host="0.0.0.0", port=settings.port, workers=settings.workers
+        "main:app",
+        host="0.0.0.0",
+        port=settings.port,
+        workers=settings.workers,
+        log_config=None,
     )
 
 
