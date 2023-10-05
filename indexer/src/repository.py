@@ -113,10 +113,12 @@ class RepositoryIndex:
         target = target.replace("-", "/")
         try:
             channels = self.index["channels"]
-            current_channel = next(filter(lambda c: c.get("id") == channel, channels), None)
+            current_channel = next(
+                filter(lambda c: c.get("id") == channel, channels), None
+            )
 
             if current_channel is None:
-                raise ValueError(f'Channel `{channel}` not found!')
+                raise ValueError(f"Channel `{channel}` not found!")
 
             latest_version = current_channel.get("versions")[0]
             latest_version_file = next(
