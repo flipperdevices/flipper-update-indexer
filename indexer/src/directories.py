@@ -37,7 +37,7 @@ async def latest_request(directory, channel, target, file_type):
     Args:
         directory: Repository name
         channel: Channel type (release, rc, dev)
-        target: Operation System (linux, mac, win)
+        target: Operating System (linux, mac, win)
         file_type: File Type
 
     Returns:
