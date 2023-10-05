@@ -42,7 +42,7 @@ def main() -> None:
             host=settings.gelf_host,
             port=settings.gelf_port,
             _kubernetes_namespace_name=settings.kubernetes_namespace,
-            _kubernetes_app_name=settings.kubernetes_app,
+            _kubernetes_labels_app=settings.kubernetes_app,
             _kubernetes_container_name=settings.kubernetes_container,
             _kubernetes_pod_name=settings.kubernetes_pod,
         )
