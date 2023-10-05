@@ -105,7 +105,7 @@ async def create_upload_files(
             logging.info(f"Uploaded {len(files)} files")
         except Exception as e:
             logging.exception(e)
-            return JSONResponse(e, status_code=500)
+            return JSONResponse(str(e), status_code=500)
         if is_directory_reindex_needed(branch):
             try:
                 reindex_dir.reindex()
