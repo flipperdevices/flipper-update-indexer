@@ -164,12 +164,14 @@ class FileParser(BaseModel):
 
 class qFlipperFileParser(FileParser):
     def parse(self, filename: str) -> None:
-        regex = re.compile(r"^(qFlipper\w*)(-.+)*-([0-9.a]+)(-rc\d+)?\.(\w+)$")
+        regex = re.compile(
+            r"^(qFlipper\w*)(-.+)*-([0-9.a]+(-rc\d+)?|(dev-\w+-\w+))\.(\w+)$"
+        )
         match = regex.match(filename)
         if not match:
             return
         arch = match.group(2)
-        extention = match.group(5)
+        extention = match.group(6)
         if extention == "dmg":
             target = "macos"
             file_type = "dmg"
@@ -191,7 +193,7 @@ class qFlipperFileParser(FileParser):
             if arch in ["64bit", "x86_64"]:
                 jsonArch = "amd64"
             else:
-                raise Exception(f"Cannot parse target")
+                raise Exception(f"Cannot parse target, arch = {arch}")
         self.target = target + "/" + jsonArch
         self.type = file_type
 
