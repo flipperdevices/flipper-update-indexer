@@ -37,7 +37,7 @@ async def latest_request(directory, channel, target, file_type):
     Args:
         directory: Repository name
         channel: Channel type (release, rc, dev)
-        target: Operation System (linux, mac, win)
+        target: Operating System (linux, mac, win)
         file_type: File Type
 
     Returns:
@@ -51,7 +51,7 @@ async def latest_request(directory, channel, target, file_type):
     try:
         return index.get_file_from_latest_version(channel, target, file_type)
     except Exception as e:
-        return JSONResponse(e, status_code=404)
+        return JSONResponse(str(e), status_code=404)
 
 
 @router.get("/{directory}/reindex")

@@ -104,7 +104,7 @@ class RepositoryIndex:
         current directory by its target and type
         Args:
             channel: Channel type (release, rc, dev)
-            target: Operation System (linux, mac, win)
+            target: Operating System (linux, mac, win)
             file_type: File Type
 
         Returns:
@@ -113,7 +113,13 @@ class RepositoryIndex:
         target = target.replace("-", "/")
         try:
             channels = self.index["channels"]
-            current_channel = next(filter(lambda c: c.get("id") == channel, channels))
+            current_channel = next(
+                filter(lambda c: c.get("id") == channel, channels), None
+            )
+
+            if current_channel is None:
+                raise ValueError(f"Channel `{channel}` not found!")
+
             latest_version = current_channel.get("versions")[0]
             latest_version_file = next(
                 filter(
