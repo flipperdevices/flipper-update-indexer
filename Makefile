@@ -9,7 +9,7 @@ venv:
 
 .PHONY: requirements
 requirements: venv
-	./venv/bin/pip install -q -r indexer/requirements.txt
+	./venv/bin/pip install -q -r requirements.txt
 
 .PHONY: clean
 clean:
