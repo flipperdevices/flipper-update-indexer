@@ -44,5 +44,5 @@ settings = Settings(
     qFlipper_github_repo=os.getenv("INDEXER_QFLIPPER_GITHUB_REPO"),
     blackmagic_github_token=os.getenv("INDEXER_BLACKMAGIC_GITHUB_TOKEN"),
     blackmagic_github_repo=os.getenv("INDEXER_BLACKMAGIC_GITHUB_REPO"),
-    private_paths=["reindex", "uploadfiles"],
+    private_paths=["reindex", "uploadfiles", "uploadfilesraw"],
 )

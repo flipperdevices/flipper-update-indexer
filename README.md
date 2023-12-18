@@ -47,3 +47,10 @@ Upload files
         -F "files=@flipper-z-f7-full-0.73.1.json" \
         127.0.0.1:8000/firmware/uploadfiles
 ```
+
+Upload files without reindex
+```bash
+    curl -L -H "Token: YOUR_TOKEN" \
+        -F "files=@gcc-arm-none-eabi-12.3-arm64-darwin-flipper-24.tar.gz" \
+        127.0.0.1:8000/toolchain/uploadfilesraw
+```

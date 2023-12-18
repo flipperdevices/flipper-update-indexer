@@ -5,7 +5,7 @@ import logging
 import uvicorn
 from fastapi import FastAPI, Request, Response
 from src import directories, file_upload, security
-from src.directories import indexes
+from src.repository import indexes, raw_file_upload_directories
 from src.settings import settings
 from pygelf import GelfTcpHandler
 
@@ -25,9 +25,17 @@ def startup_event() -> None:
         os.makedirs(settings.files_dir)
     for index in indexes:
         try:
+            index_path = os.path.join(settings.files_dir, index)
+            os.makedirs(index_path, exist_ok=True)
             indexes[index].reindex()
         except Exception:
             logging.exception(f"Init {index} reindex failed")
+    for raw_upload_dir in raw_file_upload_directories:
+        try:
+            dir_path = os.path.join(settings.files_dir, raw_upload_dir)
+            os.makedirs(dir_path, exist_ok=True)
+        except Exception:
+            logging.exception(f"Failed to create {dir_path}")
 
 
 app.include_router(file_upload.router)

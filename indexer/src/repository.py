@@ -155,3 +155,5 @@ indexes = {
         file_parser=blackmagicFileParser,
     ),
 }
+
+raw_file_upload_directories = ["toolchain"]

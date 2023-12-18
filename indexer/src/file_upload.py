@@ -7,7 +7,7 @@ import tempfile
 from typing import List
 from fastapi import APIRouter, Form, UploadFile
 from fastapi.responses import JSONResponse
-from .directories import indexes
+from .repository import indexes, raw_file_upload_directories
 from .settings import settings
 
 
@@ -46,7 +46,7 @@ def save_files(path: str, files: List[UploadFile]) -> None:
             out_file.write(file.file.read())
 
 
-def move_files(dest_dir: str, source_dir: str, version_token: str) -> None:
+def move_files_for_indexed(dest_dir: str, source_dir: str, version_token: str) -> None:
     token_file_path = os.path.join(dest_dir, TOKEN_FILENAME)
     do_cleanup = False
     if version_token and os.path.isfile(token_file_path):
@@ -61,6 +61,13 @@ def move_files(dest_dir: str, source_dir: str, version_token: str) -> None:
             with open(token_file_path, "w") as token_file:
                 token_file.write(version_token)
 
+    for file in os.listdir(source_dir):
+        sourcefilepath = os.path.join(source_dir, file)
+        destfilepath = os.path.join(dest_dir, file)
+        shutil.move(sourcefilepath, destfilepath)
+
+
+def move_files_raw(dest_dir: str, source_dir: str) -> None:
     for file in os.listdir(source_dir):
         sourcefilepath = os.path.join(source_dir, file)
         destfilepath = os.path.join(dest_dir, file)
@@ -101,7 +108,7 @@ async def create_upload_files(
         try:
             with tempfile.TemporaryDirectory() as temp_path:
                 save_files(temp_path, files)
-                move_files(final_path, temp_path, version_token)
+                move_files_for_indexed(final_path, temp_path, version_token)
             logging.info(f"Uploaded {len(files)} files")
         except Exception as e:
             logging.exception(e)
@@ -117,3 +124,34 @@ async def create_upload_files(
                 )
         else:
             return JSONResponse("File uploaded, reindexing isn't needed!")
+
+
+@router.post("/{directory}/uploadfilesraw")
+async def create_upload_files_raw(
+    directory: str,
+    files: List[UploadFile],
+):
+    """
+    A method to upload files in a certain directory without indexing
+    Args:
+        directory: Repository name
+        files: File list
+
+    Returns:
+        Upload status
+    """
+    if directory not in raw_file_upload_directories:
+        return JSONResponse(f"{directory} not found!", status_code=404)
+
+    project_root_path = os.path.join(settings.files_dir, directory)
+
+    async with lock:
+        try:
+            with tempfile.TemporaryDirectory() as temp_path:
+                save_files(temp_path, files)
+                move_files_raw(project_root_path, temp_path)
+            logging.info(f"Uploaded {len(files)} files")
+            return JSONResponse("File uploaded")
+        except Exception as e:
+            logging.exception(e)
+            return JSONResponse(str(e), status_code=500)
