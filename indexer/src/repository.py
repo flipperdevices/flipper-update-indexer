@@ -5,7 +5,7 @@ import logging
 from .parsers import parse_github_channels
 from .models import *
 from .settings import settings
-from .models import qFlipperFileParser, blackmagicFileParser
+from .models import qFlipperFileParser, blackmagicFileParser, vgmFileParser
 
 
 class RepositoryIndex:
@@ -155,6 +155,13 @@ indexes = {
         github_repo=settings.blackmagic_github_repo,
         github_org=settings.github_org,
         file_parser=blackmagicFileParser,
+    ),
+    "vgm-firmware": RepositoryIndex(
+        directory="vgm-firmware",
+        github_token=settings.vgm_github_token,
+        github_repo=settings.vgm_github_repo,
+        github_org=settings.github_org,
+        file_parser=vgmFileParser,
     ),
 }
 
