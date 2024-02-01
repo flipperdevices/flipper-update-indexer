@@ -101,7 +101,9 @@ class IndexerGithub:
         try:
             commits = self.__repo.get_commits()
             if commits.totalCount == 0:
-                raise Exception(f"No comments found!")
+                exception_msg = f"No comments found!"
+                logging.exception(exception_msg)
+                raise Exception(exception_msg)
             last_commit = commits[0]
             return Version(
                 version=last_commit.sha[:8],
@@ -115,7 +117,9 @@ class IndexerGithub:
     def get_release_version(self) -> Version:
         releases = self.__repo.get_releases()
         if releases.totalCount == 0:
-            raise Exception(f"No releases found!")
+            exception_msg = f"No releases found!"
+            logging.exception(exception_msg)
+            raise Exception(exception_msg)
         try:
             last_release = next(filter(lambda c: c.prerelease, releases))
             return Version(
@@ -129,7 +133,9 @@ class IndexerGithub:
     def get_rc_version(self) -> Version:
         releases = self.__repo.get_releases()
         if releases.totalCount == 0:
-            raise Exception(f"No release-candidates found!")
+            exception_msg = f"No release-candidates found!"
+            logging.exception(exception_msg)
+            raise Exception(exception_msg)
         try:
             last_release = next(filter(lambda c: not c.prerelease, releases))
             return Version(
@@ -157,7 +163,9 @@ class FileParser(BaseModel):
         )
         match = regex.match(filename)
         if not match:
-            raise Exception(f"Unknown file {filename}")
+            exception_msg = f"Unknown file {filename}"
+            logging.exception(exception_msg)
+            raise Exception(exception_msg)
         self.target = match.group(1)
         self.type = match.group(2) + "_" + match.group(6)
 
@@ -185,7 +193,9 @@ class qFlipperFileParser(FileParser):
             target = "windows"
             file_type = "installer"
         else:
-            raise Exception(f"Unknown file extention {extention}")
+            exception_msg = f"Unknown file extention {extention}"
+            logging.exception(exception_msg)
+            raise Exception(exception_msg)
         if extention == "dmg":  # MacOS case
             jsonArch = "amd64"
         else:
@@ -193,7 +203,9 @@ class qFlipperFileParser(FileParser):
             if arch in ["64bit", "x86_64"]:
                 jsonArch = "amd64"
             else:
-                raise Exception(f"Cannot parse target, arch = {arch}")
+                exception_msg = f"Cannot parse target, arch = {arch}"
+                logging.exception(exception_msg)
+                raise Exception(exception_msg)
         self.target = target + "/" + jsonArch
         self.type = file_type
 
@@ -205,6 +217,8 @@ class blackmagicFileParser(FileParser):
         )
         match = regex.match(filename)
         if not match:
-            raise Exception(f"Unknown file {filename}")
+            exception_msg = f"Unknown file {filename}"
+            logging.exception(exception_msg)
+            raise Exception(exception_msg)
         self.target = match.group(1)
         self.type = match.group(2) + "_" + match.group(6)

@@ -118,7 +118,9 @@ class RepositoryIndex:
             )
 
             if current_channel is None:
-                raise ValueError(f"Channel `{channel}` not found!")
+                valueerr_msg = f"Channel `{channel}` not found!"
+                logging.exception(valueerr_msg)
+                raise ValueError(valueerr_msg)
 
             latest_version = current_channel.get("versions")[0]
             latest_version_file = next(

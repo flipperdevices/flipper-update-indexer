@@ -27,7 +27,9 @@ def check_if_path_inside_allowed_path(allowed_path: str, path: str) -> None:
     allowed_path = os.path.abspath(allowed_path)
     user_path = os.path.abspath(path)
     if not user_path.startswith(allowed_path + os.sep):
-        raise Exception(f"User specified path {path} is not inside {allowed_path}")
+        exception_msg = f"User specified path {path} is not inside {allowed_path}"
+        logging.exception(exception_msg)
+        raise Exception(exception_msg)
 
 
 def cleanup_dir(path: str) -> None:
