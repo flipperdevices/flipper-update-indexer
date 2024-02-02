@@ -101,7 +101,7 @@ class IndexerGithub:
         try:
             commits = self.__repo.get_commits()
             if commits.totalCount == 0:
-                exception_msg = f"No comments found!"
+                exception_msg = f"No commits found in master branch!"
                 logging.exception(exception_msg)
                 raise Exception(exception_msg)
             last_commit = commits[0]
@@ -117,9 +117,8 @@ class IndexerGithub:
     def get_release_version(self) -> Version:
         releases = self.__repo.get_releases()
         if releases.totalCount == 0:
-            exception_msg = f"No releases found!"
-            logging.exception(exception_msg)
-            raise Exception(exception_msg)
+            logging.warning(f"No releases found for {self.__repo.full_name}!")
+            return None
         try:
             last_release = next(filter(lambda c: c.prerelease, releases))
             return Version(
@@ -133,9 +132,8 @@ class IndexerGithub:
     def get_rc_version(self) -> Version:
         releases = self.__repo.get_releases()
         if releases.totalCount == 0:
-            exception_msg = f"No release-candidates found!"
-            logging.exception(exception_msg)
-            raise Exception(exception_msg)
+            logging.warning(f"No release-candidates found for {self.__repo.full_name}!")
+            return None
         try:
             last_release = next(filter(lambda c: not c.prerelease, releases))
             return Version(
