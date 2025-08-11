@@ -5,7 +5,12 @@ import logging
 from .parsers import parse_github_channels
 from .models import *
 from .settings import settings
-from .models import qFlipperFileParser, blackmagicFileParser, vgmFileParser
+from .models import (
+    qFlipperFileParser,
+    blackmagicFileParser,
+    vgmFileParser,
+    busybarFileParser,
+)
 
 
 class RepositoryIndex:
@@ -162,6 +167,13 @@ indexes = {
         github_repo=settings.vgm_github_repo,
         github_org=settings.github_org,
         file_parser=vgmFileParser,
+    ),
+    "busybar-firmware": RepositoryIndex(
+        directory="busybar-firmware",
+        github_token=settings.busybar_github_token,
+        github_repo=settings.busybar_github_repo,
+        github_org=settings.github_org,
+        file_parser=busybarFileParser,
     ),
 }
 
