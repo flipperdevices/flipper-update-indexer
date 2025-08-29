@@ -26,7 +26,7 @@ def add_files_to_version(
     if not os.path.isdir(directory_path):
         exception_msg = f"Directory {directory_path} not found!"
         logging.exception(exception_msg)
-        raise Exception(exception_msg)
+        return version
 
     for cur in sorted(os.listdir(directory_path)):
         # skip .DS_store files
