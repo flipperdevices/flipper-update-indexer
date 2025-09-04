@@ -1,6 +1,6 @@
 # Flipper Zero Update Indexer and Uploader
 
-## Start localy
+## Start locally
 ```bash
     INDEXER_FIRMWARE_GITHUB_TOKEN= \
     INDEXER_QFLIPPER_GITHUB_TOKEN= \
