@@ -73,12 +73,11 @@ class RepositoryIndex:
                 continue
 
             # extract relative path more safely
-            relative_path = os.path.relpath(root, main_dir)
+            cur_dir = os.path.relpath(root, main_dir)
             # skip if we're still in the main directory
-            if relative_path == "." or relative_path.startswith(".."):
+            if cur_dir == "." or cur_dir.startswith(".."):
                 continue
 
-            cur_dir = relative_path
             if self.indexer_github.is_release_exist(cur_dir):
                 continue
             if self.indexer_github.is_tag_exist(cur_dir):
