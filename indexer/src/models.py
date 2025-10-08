@@ -241,6 +241,14 @@ class busybarFileParser(FileParser):
         )
         match = regex.match(filename)
         if not match:
+            # Check if file matches "busybar-fXX-sha256sum.txt" pattern
+            regex_alt = re.compile(r"^busybar-(\w+)-sha256sum\.txt$")
+            match_alt = regex_alt.match(filename)
+            if match_alt:
+                self.target = match_alt.group(1)
+                self.type = "sha256sum_txt"
+                return
+
             exception_msg = f"Unknown file {filename}"
             logging.exception(exception_msg)
             raise Exception(exception_msg)
