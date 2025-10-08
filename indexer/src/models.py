@@ -248,7 +248,7 @@ class busybarFileParser(FileParser):
                 self.target = match_alt.group(1)
                 self.type = "sha256sum_txt"
                 return
-            
+
             exception_msg = f"Unknown file {filename}"
             logging.exception(exception_msg)
             raise Exception(exception_msg)
