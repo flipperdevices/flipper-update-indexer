@@ -26,6 +26,8 @@ class Settings(BaseModel):
     vgm_github_repo: str
     busybar_github_token: str
     busybar_github_repo: str
+    one_mcu_firmware_github_token: str
+    one_mcu_firmware_github_repo: str
     private_paths: List[str]
 
 
@@ -52,6 +54,8 @@ settings = Settings(
     vgm_github_repo=os.getenv("INDEXER_VGM_GITHUB_REPO"),
     busybar_github_token=os.getenv("INDEXER_BUSYBAR_GITHUB_TOKEN"),
     busybar_github_repo=os.getenv("INDEXER_BUSYBAR_GITHUB_REPO"),
+    one_mcu_firmware_github_token=os.getenv("INDEXER_ONE_MCU_FIRMWARE_GITHUB_TOKEN"),
+    one_mcu_firmware_github_repo=os.getenv("INDEXER_ONE_MCU_FIRMWARE_GITHUB_REPO"),
     private_paths=[
         "reindex",
         "uploadfiles",

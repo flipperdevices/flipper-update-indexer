@@ -10,6 +10,7 @@ from .models import (
     blackmagicFileParser,
     vgmFileParser,
     busybarFileParser,
+    oneMcuFirmwareFileParser,
 )
 
 
@@ -185,6 +186,13 @@ indexes = {
         github_repo=settings.busybar_github_repo,
         github_org=settings.github_org,
         file_parser=busybarFileParser,
+    ),
+    "one-mcu-firmware": RepositoryIndex(
+        directory="one-mcu-firmware",
+        github_token=settings.one_mcu_firmware_github_token,
+        github_repo=settings.one_mcu_firmware_github_repo,
+        github_org=settings.github_org,
+        file_parser=oneMcuFirmwareFileParser,
     ),
 }
 

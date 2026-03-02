@@ -254,3 +254,16 @@ class busybarFileParser(FileParser):
             raise Exception(exception_msg)
         self.target = match.group(1)
         self.type = match.group(2) + "_" + match.group(6)
+
+class oneMcuFirmwareFileParser(FileParser):
+    def parse(self, filename: str) -> None:
+        regex = re.compile(
+            r"^one-mcu-firmware-(\w+)-(\w+)-([0-9.]+(-rc)?|(dev-\w+-\w+))\.(\w+)$"
+        )
+        match = regex.match(filename)
+        if not match:
+            exception_msg = f"Unknown file {filename}"
+            logging.exception(exception_msg)
+            raise Exception(exception_msg)
+        self.target = match.group(1)
+        self.type = match.group(2) + "_" + match.group(6)
