@@ -256,10 +256,10 @@ class busybarFileParser(FileParser):
         self.type = match.group(2) + "_" + match.group(6)
 
 
-class oneMcuFirmwareFileParser(FileParser):
+class flipperOneMcuFileParser(FileParser):
     def parse(self, filename: str) -> None:
         regex = re.compile(
-            r"^one-mcu-firmware-(\w+)-(\w+)-([0-9.]+(-rc)?|(dev-\w+-\w+))\.(\w+)$"
+            r"^flipper-one-mcu-(\w+)-(\w+)-([0-9.]+(-rc)?|(dev-\w+-\w+))\.(\w+)$"
         )
         match = regex.match(filename)
         if not match:
