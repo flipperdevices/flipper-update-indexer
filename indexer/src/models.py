@@ -255,6 +255,7 @@ class busybarFileParser(FileParser):
         self.target = match.group(1)
         self.type = match.group(2) + "_" + match.group(6)
 
+
 class oneMcuFirmwareFileParser(FileParser):
     def parse(self, filename: str) -> None:
         regex = re.compile(
