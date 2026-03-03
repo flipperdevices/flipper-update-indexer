@@ -10,6 +10,7 @@ from .models import (
     blackmagicFileParser,
     vgmFileParser,
     busybarFileParser,
+    flipperOneMcuFileParser,
 )
 
 
@@ -185,6 +186,13 @@ indexes = {
         github_repo=settings.busybar_github_repo,
         github_org=settings.github_org,
         file_parser=busybarFileParser,
+    ),
+    "flipper-one-mcu": RepositoryIndex(
+        directory="flipper-one-mcu",
+        github_token=settings.flipper_one_mcu_github_token,
+        github_repo=settings.flipper_one_mcu_github_repo,
+        github_org=settings.github_org,
+        file_parser=flipperOneMcuFileParser,
     ),
 }
 

@@ -26,6 +26,8 @@ class Settings(BaseModel):
     vgm_github_repo: str
     busybar_github_token: str
     busybar_github_repo: str
+    flipper_one_mcu_github_token: str
+    flipper_one_mcu_github_repo: str
     private_paths: List[str]
 
 
@@ -52,6 +54,8 @@ settings = Settings(
     vgm_github_repo=os.getenv("INDEXER_VGM_GITHUB_REPO"),
     busybar_github_token=os.getenv("INDEXER_BUSYBAR_GITHUB_TOKEN"),
     busybar_github_repo=os.getenv("INDEXER_BUSYBAR_GITHUB_REPO"),
+    flipper_one_mcu_github_token=os.getenv("INDEXER_FLIPPER_ONE_MCU_GITHUB_TOKEN"),
+    flipper_one_mcu_github_repo=os.getenv("INDEXER_FLIPPER_ONE_MCU_GITHUB_REPO"),
     private_paths=[
         "reindex",
         "uploadfiles",
