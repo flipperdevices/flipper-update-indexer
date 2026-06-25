@@ -11,6 +11,11 @@ venv:
 requirements: venv
 	./venv/bin/pip install -q -r requirements.txt
 
+.PHONY: test
+test: venv
+	./venv/bin/pip install -q -r requirements-dev.txt
+	./venv/bin/python -m pytest indexer/tests
+
 .PHONY: clean
 clean:
 	rm -rf venv

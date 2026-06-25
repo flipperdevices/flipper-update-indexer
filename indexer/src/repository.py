@@ -1,10 +1,9 @@
-import os
-import shutil
 import logging
 
 from .parsers import parse_github_channels
 from .models import *
 from .settings import settings
+from .storage import storage
 from .models import (
     qFlipperFileParser,
     blackmagicFileParser,
@@ -16,7 +15,6 @@ from .models import (
 
 class RepositoryIndex:
     index: dict
-    indexer_github: IndexerGithub
 
     def __init__(
         self,
@@ -27,10 +25,22 @@ class RepositoryIndex:
         file_parser: FileParser = FileParser,
     ):
         self.index = Index().dict()
-        self.indexer_github = IndexerGithub()
-        self.indexer_github.login(github_token, github_repo, github_org)
         self.directory = directory
         self.file_parser = file_parser
+        self._github_token = github_token
+        self._github_repo = github_repo
+        self._github_org = github_org
+        self._indexer_github = None
+
+    @property
+    def indexer_github(self) -> IndexerGithub:
+        # Login lazily so the service can import and start without valid GitHub
+        # credentials (local/dev): the GitHub API is only hit on reindex.
+        if self._indexer_github is None:
+            github = IndexerGithub()
+            github.login(self._github_token, self._github_repo, self._github_org)
+            self._indexer_github = github
+        return self._indexer_github
 
     def delete_empty_directories(self):
         """
@@ -38,16 +48,13 @@ class RepositoryIndex:
         Returns:
             Nothing
         """
-        main_dir = os.path.join(settings.files_dir, self.directory)
-        for cur in os.listdir(main_dir):
-            if cur.startswith("."):
+        for sub_dir in storage.list_dirs(self.directory):
+            if storage.list_files(self.directory, sub_dir) or storage.list_dirs(
+                self.directory, sub_dir
+            ):
                 continue
-            cur_dir = os.path.join(main_dir, cur)
-            dir_content = os.listdir(cur_dir)
-            if len(dir_content) > 0:
-                continue
-            shutil.rmtree(cur_dir)
-            logging.info(f"Deleting {cur_dir}")
+            storage.delete_tree(self.directory, sub_dir)
+            logging.info(f"Deleting {self.directory}/{sub_dir}")
 
     def delete_unlinked_directories(self):
         """
@@ -60,33 +67,23 @@ class RepositoryIndex:
             Nothing
         """
         self.indexer_github.sync_info()
-        main_dir = os.path.join(settings.files_dir, self.directory)
-        for root, dirs, files in os.walk(main_dir):
-            if len(files) == 0:
+        for relative_dir, files in storage.walk(self.directory):
+            # skip the main directory itself
+            if relative_dir in (".", ""):
                 continue
 
             # skip .DS_store files
             if len(files) == 1 and files[0].startswith("."):
                 continue
 
-            # skip the main directory itself
-            if root == main_dir:
+            if self.indexer_github.is_release_exist(relative_dir):
                 continue
-
-            # extract relative path more safely
-            cur_dir = os.path.relpath(root, main_dir)
-            # skip if we're still in the main directory
-            if cur_dir == "." or cur_dir.startswith(".."):
+            if self.indexer_github.is_tag_exist(relative_dir):
                 continue
-
-            if self.indexer_github.is_release_exist(cur_dir):
+            if self.indexer_github.is_branch_exist(relative_dir):
                 continue
-            if self.indexer_github.is_tag_exist(cur_dir):
-                continue
-            if self.indexer_github.is_branch_exist(cur_dir):
-                continue
-            shutil.rmtree(os.path.join(main_dir, cur_dir))
-            logging.info(f"Deleting {cur_dir}")
+            storage.delete_tree(self.directory, relative_dir)
+            logging.info(f"Deleting {self.directory}/{relative_dir}")
 
     def reindex(self):
         """
@@ -152,48 +149,56 @@ class RepositoryIndex:
             raise e
 
 
-indexes = {
-    "firmware": RepositoryIndex(
-        directory="firmware",
-        github_token=settings.firmware_github_token,
-        github_repo=settings.firmware_github_repo,
-        github_org=settings.github_org,
+# Catalog of every directory the upstream indexer can build. Only directories
+# listed in settings.enabled_directories are activated, so a Busy-only instance
+# runs just "busybar-firmware" without needing the other repositories' tokens.
+_directory_catalog = {
+    "firmware": (
+        settings.firmware_github_token,
+        settings.firmware_github_repo,
+        FileParser,
     ),
-    "qFlipper": RepositoryIndex(
-        directory="qFlipper",
-        github_token=settings.qFlipper_github_token,
-        github_repo=settings.qFlipper_github_repo,
-        github_org=settings.github_org,
-        file_parser=qFlipperFileParser,
+    "qFlipper": (
+        settings.qFlipper_github_token,
+        settings.qFlipper_github_repo,
+        qFlipperFileParser,
     ),
-    "blackmagic-firmware": RepositoryIndex(
-        directory="blackmagic-firmware",
-        github_token=settings.blackmagic_github_token,
-        github_repo=settings.blackmagic_github_repo,
-        github_org=settings.github_org,
-        file_parser=blackmagicFileParser,
+    "blackmagic-firmware": (
+        settings.blackmagic_github_token,
+        settings.blackmagic_github_repo,
+        blackmagicFileParser,
     ),
-    "vgm-firmware": RepositoryIndex(
-        directory="vgm-firmware",
-        github_token=settings.vgm_github_token,
-        github_repo=settings.vgm_github_repo,
-        github_org=settings.github_org,
-        file_parser=vgmFileParser,
+    "vgm-firmware": (
+        settings.vgm_github_token,
+        settings.vgm_github_repo,
+        vgmFileParser,
     ),
-    "busybar-firmware": RepositoryIndex(
-        directory="busybar-firmware",
-        github_token=settings.busybar_github_token,
-        github_repo=settings.busybar_github_repo,
-        github_org=settings.github_org,
-        file_parser=busybarFileParser,
+    "busybar-firmware": (
+        settings.busybar_github_token,
+        settings.busybar_github_repo,
+        busybarFileParser,
     ),
-    "flipper-one-mcu": RepositoryIndex(
-        directory="flipper-one-mcu",
-        github_token=settings.flipper_one_mcu_github_token,
-        github_repo=settings.flipper_one_mcu_github_repo,
-        github_org=settings.github_org,
-        file_parser=flipperOneMcuFileParser,
+    "flipper-one-mcu": (
+        settings.flipper_one_mcu_github_token,
+        settings.flipper_one_mcu_github_repo,
+        flipperOneMcuFileParser,
     ),
 }
 
-raw_file_upload_directories = ["toolchain"]
+indexes = {
+    directory: RepositoryIndex(
+        directory=directory,
+        github_token=github_token,
+        github_repo=github_repo,
+        github_org=settings.github_org,
+        file_parser=file_parser,
+    )
+    for directory, (
+        github_token,
+        github_repo,
+        file_parser,
+    ) in _directory_catalog.items()
+    if directory in settings.enabled_directories
+}
+
+raw_file_upload_directories = list(settings.raw_upload_directories)

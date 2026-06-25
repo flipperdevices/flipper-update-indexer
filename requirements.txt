@@ -3,5 +3,6 @@ uvicorn==0.34.2
 python-multipart==0.0.20
 jsonschema==4.17.3
 PyGithub==1.57
+boto3==1.43.35
 black==25.1.0
 pygelf==0.4.2

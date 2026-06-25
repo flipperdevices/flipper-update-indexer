@@ -1,14 +1,13 @@
-import os
 import logging
 import copy
 
 from .models import *
 from .channels import *
-from .settings import settings
+from .storage import storage
 
 
 def add_files_to_version(
-    version: Version, file_parser: FileParser, main_dir: str, сhannel_dir: str
+    version: Version, file_parser: FileParser, main_dir: str, channel_dir: str
 ) -> Version:
     """
     Method for adding a new artifact model to the selected version
@@ -16,20 +15,13 @@ def add_files_to_version(
         version:
         file_parser:
         main_dir:
-        сhannel_dir:
+        channel_dir:
 
     Returns:
         Modified model version in which the file model was added
     """
-    directory_path = os.path.join(settings.files_dir, main_dir, сhannel_dir)
-
-    if not os.path.isdir(directory_path):
-        exception_msg = f"Directory {directory_path} not found!"
-        logging.exception(exception_msg)
-        return version
-
-    for cur in sorted(os.listdir(directory_path)):
-        # skip .DS_store files
+    for cur in sorted(storage.list_files(main_dir, channel_dir)):
+        # skip hidden files such as .DS_Store and the .version_id marker
         if cur.startswith("."):
             continue
         parsed_file = file_parser()
@@ -40,10 +32,10 @@ def add_files_to_version(
             continue
         version.add_file(
             VersionFile(
-                url=os.path.join(settings.base_url, main_dir, сhannel_dir, cur),
+                url=storage.public_url(main_dir, channel_dir, cur),
                 target=parsed_file.target,
                 type=parsed_file.type,
-                sha256=parsed_file.getSHA256(os.path.join(directory_path, cur)),
+                sha256=storage.sha256(main_dir, channel_dir, cur),
             )
         )
     return version

@@ -1,14 +1,11 @@
-import os
 import re
-import shutil
 import logging
 import asyncio
-import tempfile
 from typing import List
 from fastapi import APIRouter, Form, UploadFile
 from fastapi.responses import JSONResponse
 from .repository import indexes, raw_file_upload_directories
-from .settings import settings
+from .storage import storage
 
 
 router = APIRouter()
@@ -23,57 +20,30 @@ def is_directory_reindex_needed(branch: str) -> bool:
     return bool(__reindex_regexp__.match(branch))
 
 
-def check_if_path_inside_allowed_path(allowed_path: str, path: str) -> None:
-    allowed_path = os.path.abspath(allowed_path)
-    user_path = os.path.abspath(path)
-    if not user_path.startswith(allowed_path + os.sep):
-        exception_msg = f"User specified path {path} is not inside {allowed_path}"
-        logging.exception(exception_msg)
-        raise Exception(exception_msg)
+def is_branch_safe(branch: str) -> bool:
+    # branch may contain slashes (e.g. "user/feature") but must not escape the directory
+    return all(part not in ("", ".", "..") for part in branch.split("/"))
 
 
-def cleanup_dir(path: str) -> None:
-    if os.path.isdir(path):
-        shutil.rmtree(path)
-    elif os.path.isfile(path):
-        os.remove(path)
-    os.makedirs(path, exist_ok=True)
-
-
-def save_files(path: str, files: List[UploadFile]) -> None:
-    cleanup_dir(path)
-    for file in files:
-        filepath = os.path.join(path, file.filename)
-        with open(filepath, "wb") as out_file:
-            out_file.write(file.file.read())
-
-
-def move_files_for_indexed(dest_dir: str, source_dir: str, version_token: str) -> None:
-    token_file_path = os.path.join(dest_dir, TOKEN_FILENAME)
-    do_cleanup = False
-    if version_token and os.path.isfile(token_file_path):
-        with open(token_file_path, "r") as token_file:
-            if token_file.read() != version_token:
-                do_cleanup = True
-    else:
-        do_cleanup = True
-    if do_cleanup:
-        cleanup_dir(dest_dir)
+def store_indexed_files(
+    directory: str, branch: str, files: List[UploadFile], version_token: str
+) -> None:
+    stored_token = None
+    if version_token and storage.file_exists(directory, branch, TOKEN_FILENAME):
+        stored_token = storage.read(directory, branch, TOKEN_FILENAME).decode()
+    # wipe the branch when it holds a different build (or no version token is given),
+    # otherwise keep existing files and just add/overwrite the uploaded ones
+    if not version_token or stored_token != version_token:
+        storage.delete_tree(directory, branch)
         if version_token:
-            with open(token_file_path, "w") as token_file:
-                token_file.write(version_token)
-
-    for file in os.listdir(source_dir):
-        sourcefilepath = os.path.join(source_dir, file)
-        destfilepath = os.path.join(dest_dir, file)
-        shutil.move(sourcefilepath, destfilepath)
+            storage.write(version_token.encode(), directory, branch, TOKEN_FILENAME)
+    for file in files:
+        storage.write(file.file.read(), directory, branch, file.filename)
 
 
-def move_files_raw(dest_dir: str, source_dir: str) -> None:
-    for file in os.listdir(source_dir):
-        sourcefilepath = os.path.join(source_dir, file)
-        destfilepath = os.path.join(dest_dir, file)
-        shutil.move(sourcefilepath, destfilepath)
+def store_raw_files(directory: str, files: List[UploadFile]) -> None:
+    for file in files:
+        storage.write(file.file.read(), directory, file.filename)
 
 
 @router.post("/{directory}/uploadfiles")
@@ -95,22 +65,14 @@ async def create_upload_files(
     """
     if directory not in indexes:
         return JSONResponse(f"{directory} not found!", status_code=404)
+    if not is_branch_safe(branch):
+        return JSONResponse(f"Invalid branch name: {branch}", status_code=400)
 
     reindex_dir = indexes.get(directory)
-    project_root_path = os.path.join(settings.files_dir, directory)
-    final_path = os.path.join(project_root_path, branch)
-
-    try:
-        check_if_path_inside_allowed_path(project_root_path, final_path)
-    except Exception as e:
-        logging.exception(e)
-        return JSONResponse(str(e), status_code=500)
 
     async with lock:
         try:
-            with tempfile.TemporaryDirectory() as temp_path:
-                save_files(temp_path, files)
-                move_files_for_indexed(final_path, temp_path, version_token)
+            store_indexed_files(directory, branch, files, version_token)
             logging.info(f"Uploaded {len(files)} files")
         except Exception as e:
             logging.exception(e)
@@ -145,13 +107,9 @@ async def create_upload_files_raw(
     if directory not in raw_file_upload_directories:
         return JSONResponse(f"{directory} not found!", status_code=404)
 
-    project_root_path = os.path.join(settings.files_dir, directory)
-
     async with lock:
         try:
-            with tempfile.TemporaryDirectory() as temp_path:
-                save_files(temp_path, files)
-                move_files_raw(project_root_path, temp_path)
+            store_raw_files(directory, files)
             logging.info(f"Uploaded {len(files)} files")
             return JSONResponse("File uploaded")
         except Exception as e:

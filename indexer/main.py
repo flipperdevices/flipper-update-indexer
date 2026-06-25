@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-import sys
-import os
 import logging
 import uvicorn
 from fastapi import FastAPI, Request, Response
-from src import directories, file_upload, security
+from src import directories, file_upload, security, serving
 from src.repository import indexes, raw_file_upload_directories
+from src.storage import storage
 from src.settings import settings
 from pygelf import GelfTcpHandler
 
@@ -21,24 +20,24 @@ async def check_token(request: Request, call_next):
 
 @app.on_event("startup")
 def startup_event() -> None:
-    if not os.path.isdir(settings.files_dir):
-        os.makedirs(settings.files_dir)
+    storage.ensure_root()
     for index in indexes:
         try:
-            index_path = os.path.join(settings.files_dir, index)
-            os.makedirs(index_path, exist_ok=True)
+            storage.ensure_dir(index)
             indexes[index].reindex()
         except Exception:
             logging.exception(f"Init {index} reindex failed")
     for raw_upload_dir in raw_file_upload_directories:
         try:
-            dir_path = os.path.join(settings.files_dir, raw_upload_dir)
-            os.makedirs(dir_path, exist_ok=True)
+            storage.ensure_dir(raw_upload_dir)
         except Exception:
-            logging.exception(f"Failed to create {dir_path}")
+            logging.exception(f"Failed to create {raw_upload_dir}")
 
 
+# serving router is included before directories so /builds/<path>, /health and
+# /ready win over the /{directory}/... catch-all routes
 app.include_router(file_upload.router)
+app.include_router(serving.router)
 app.include_router(directories.router)
 
 
