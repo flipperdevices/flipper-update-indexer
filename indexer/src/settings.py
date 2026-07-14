@@ -10,6 +10,7 @@ class Settings(BaseModel):
     base_url: str
     token: str
     github_org: str
+    busybar_firmware_github_org: str
     gelf_host: str = None
     gelf_port: str = None
     kubernetes_namespace: str = None
@@ -38,6 +39,9 @@ settings = Settings(
     base_url=os.getenv("INDEXER_BASE_URL"),
     token=os.getenv("INDEXER_TOKEN"),
     github_org=os.getenv("INDEXER_GITHUB_ORGANIZATION"),
+    busybar_firmware_github_org=os.getenv(
+        "INDEXER_BUSYBAR_FIRMWARE_GITHUB_ORGANIZATION"
+    ),
     gelf_host=os.getenv("GELF_HOST"),
     gelf_port=os.getenv("GELF_PORT"),
     kubernetes_namespace=os.getenv("KUBERNETES_NAMESPACE"),

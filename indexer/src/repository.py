@@ -184,7 +184,7 @@ indexes = {
         directory="busybar-firmware",
         github_token=settings.busybar_github_token,
         github_repo=settings.busybar_github_repo,
-        github_org=settings.github_org,
+        github_org=settings.busybar_firmware_github_org,
         file_parser=busybarFileParser,
     ),
     "flipper-one-mcu": RepositoryIndex(
